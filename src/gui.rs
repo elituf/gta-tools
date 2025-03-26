@@ -1,12 +1,9 @@
-use crate::{
-    features::{
-        self,
-        anti_afk::AntiAfk,
-        empty_session::EmptySession,
-        force_close::ForceClose,
-        launch::{Launch, Platform},
-    },
-    util::Countdown,
+use crate::features::{
+    self,
+    anti_afk::AntiAfk,
+    empty_session::EmptySession,
+    force_close::ForceClose,
+    launch::{Launch, Platform},
 };
 use eframe::egui;
 use std::time::{Duration, Instant};
@@ -20,7 +17,6 @@ pub struct App {
     pub launch: Launch,
     pub force_close: ForceClose,
     pub empty_session: EmptySession,
-    pub empty_session_countdown: Countdown,
     pub anti_afk: AntiAfk,
 }
 
@@ -32,9 +28,6 @@ impl Default for App {
             game_handle: HANDLE::default(),
             launch: Launch::default(),
             force_close: ForceClose::default(),
-            empty_session_countdown: Countdown::new(
-                features::empty_session::INTERVAL.as_secs() as usize
-            ),
             empty_session: EmptySession::default(),
             anti_afk: AntiAfk::default(),
         }
@@ -107,15 +100,15 @@ impl eframe::App for App {
                         features::empty_session::activate(self);
                     }
                     if !self.empty_session.enabled {
-                        self.empty_session_countdown.count();
+                        self.empty_session.countdown.count();
                     } else {
-                        self.empty_session_countdown.reset();
+                        self.empty_session.countdown.reset();
                     }
                     if self.empty_session.interval.elapsed() >= features::empty_session::INTERVAL {
                         features::empty_session::deactivate(self);
                         self.empty_session.enabled = true;
                     }
-                    ui.label(&self.empty_session_countdown.i_string);
+                    ui.label(&self.empty_session.countdown.i_string);
                 });
             });
             ui.checkbox(&mut self.anti_afk.enabled, "Anti AFK")

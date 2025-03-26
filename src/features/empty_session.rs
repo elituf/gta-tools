@@ -1,4 +1,4 @@
-use crate::gui::App;
+use crate::{features, gui::App, util::Countdown};
 use std::time::{Duration, Instant};
 use sysinfo::System;
 use windows::Win32::{
@@ -13,6 +13,7 @@ const LEGACY: &str = "GTA5.exe";
 pub struct EmptySession {
     pub enabled: bool,
     pub interval: Instant,
+    pub countdown: Countdown,
 }
 
 impl Default for EmptySession {
@@ -20,6 +21,7 @@ impl Default for EmptySession {
         Self {
             enabled: true,
             interval: Instant::now(),
+            countdown: Countdown::new(features::empty_session::INTERVAL.as_secs() as usize),
         }
     }
 }
