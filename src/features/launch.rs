@@ -1,0 +1,55 @@
+use std::{fmt::Display, path::PathBuf, process::Command};
+use winreg::{RegKey, enums::HKEY_LOCAL_MACHINE};
+
+#[derive(Default, Debug, PartialEq, Eq)]
+pub enum Platform {
+    #[default]
+    Steam,
+    Rockstar,
+    Epic,
+}
+
+impl Display for Platform {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let x = match self {
+            Self::Steam => "Steam",
+            Self::Rockstar => "Rockstar Games",
+            Self::Epic => "Epic Games",
+        };
+        write!(f, "{x}")
+    }
+}
+
+#[derive(Default)]
+pub struct Launch {
+    pub selected: Platform,
+}
+
+pub fn launch(platform: &Platform) {
+    match platform {
+        Platform::Steam => {
+            let _ = open::that_detached("steam://run/3240220");
+        }
+        Platform::Rockstar => {
+            let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+            let Ok(gta_v_enhanced) =
+                hklm.open_subkey(r"SOFTWARE\WOW6432Node\Rockstar Games\GTA V Enhanced")
+            else {
+                return;
+            };
+            let Ok(install_folder): Result<String, std::io::Error> =
+                gta_v_enhanced.get_value("InstallFolder")
+            else {
+                return;
+            };
+            let mut play_gtav_path = PathBuf::from(install_folder);
+            play_gtav_path.push("PlayGTAV.exe");
+            let _ = Command::new(play_gtav_path).spawn();
+        }
+        Platform::Epic => {
+            let _ = open::that_detached(
+                "com.epicgames.launcher://apps/331226ba7c944720baa99103cb1fe80c?action=launch&silent=true",
+            );
+        }
+    }
+}
