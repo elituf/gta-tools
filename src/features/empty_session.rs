@@ -2,7 +2,7 @@ use crate::{features, gui::App, util::Countdown};
 use std::time::{Duration, Instant};
 use sysinfo::System;
 use windows::Win32::{
-    Foundation::{HANDLE, NTSTATUS},
+    Foundation::{CloseHandle, HANDLE, NTSTATUS},
     System::Threading::{OpenProcess, PROCESS_SUSPEND_RESUME},
 };
 
@@ -58,5 +58,6 @@ pub fn activate(app: &mut App) {
 pub fn deactivate(app: &mut App) {
     unsafe {
         let _ = NtResumeProcess(app.game_handle);
+        let _ = CloseHandle(app.game_handle);
     }
 }
