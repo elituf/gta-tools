@@ -33,7 +33,7 @@ pub fn launch(platform: &Platform) {
         Platform::Rockstar => {
             let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
             let Ok(gta_v_enhanced) =
-                hklm.open_subkey(r"SOFTWARE\WOW6432Node\Rockstar Games\GTA V Enhanced")
+                hklm.open_subkey(r"SOFTWARE\WOW6432Node\Rockstar Games\GTAV Enhanced")
             else {
                 return;
             };
