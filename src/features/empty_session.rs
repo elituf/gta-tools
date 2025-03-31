@@ -1,4 +1,4 @@
-use crate::{features, gui::App, util::Countdown};
+use crate::{features, gui::App, util::countdown::Countdown};
 use std::time::{Duration, Instant};
 use sysinfo::System;
 use windows::Win32::{
