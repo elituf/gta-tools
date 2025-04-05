@@ -11,7 +11,7 @@ const ENHANCED: &str = "GTA5_Enhanced.exe";
 const LEGACY: &str = "GTA5.exe";
 
 pub struct EmptySession {
-    pub enabled: bool,
+    pub disabled: bool,
     pub interval: Instant,
     pub countdown: Countdown,
 }
@@ -19,7 +19,7 @@ pub struct EmptySession {
 impl Default for EmptySession {
     fn default() -> Self {
         Self {
-            enabled: true,
+            disabled: false,
             interval: Instant::now(),
             countdown: Countdown::new(features::empty_session::INTERVAL.as_secs() as usize),
         }

@@ -1,9 +1,12 @@
-use crate::features::{
-    self,
-    anti_afk::AntiAfk,
-    empty_session::EmptySession,
-    force_close::ForceClose,
-    launch::{Launch, Platform},
+use crate::{
+    features::{
+        self,
+        anti_afk::AntiAfk,
+        empty_session::EmptySession,
+        force_close::ForceClose,
+        launch::{Launch, Platform},
+    },
+    util::elevate,
 };
 use eframe::egui;
 use std::time::{Duration, Instant};
@@ -92,21 +95,21 @@ impl eframe::App for App {
                 ui.label("Session");
                 ui.add(egui::Separator::default().horizontal());
             });
-            ui.add_enabled_ui(self.empty_session.enabled, |ui| {
+            ui.add_enabled_ui(!self.empty_session.disabled, |ui| {
                 ui.horizontal(|ui| {
                     if ui.button("Empty current session").clicked() {
                         self.empty_session.interval = Instant::now();
-                        self.empty_session.enabled = false;
+                        self.empty_session.disabled = true;
                         features::empty_session::activate(self);
                     }
-                    if !self.empty_session.enabled {
+                    if self.empty_session.disabled {
                         self.empty_session.countdown.count();
                     } else {
                         self.empty_session.countdown.reset();
                     }
                     if self.empty_session.interval.elapsed() >= features::empty_session::INTERVAL {
                         features::empty_session::deactivate(self);
-                        self.empty_session.enabled = true;
+                        self.empty_session.disabled = false;
                     }
                     ui.label(&self.empty_session.countdown.i_string);
                 });
@@ -119,6 +122,14 @@ impl eframe::App for App {
                 features::anti_afk::activate();
                 self.anti_afk.interval = Instant::now();
             }
+            // ui.horizontal(|ui| {
+            //     ui.label("Network");
+            //     ui.add(egui::Separator::default().horizontal());
+            // });
+            // if ui.button("Elevate").clicked() {
+            //     elevate::elevate();
+            // }
+            // ui.checkbox(&mut false, "Block connections to Rockstar");
             ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
                 ui.horizontal(|ui| {
                     ui.horizontal(|ui| {
@@ -127,7 +138,11 @@ impl eframe::App for App {
                         ui.hyperlink_to("futile", "http://futile.eu");
                     });
                     ui.separator();
-                    ui.label(format!("v{}", env!("CARGO_PKG_VERSION")));
+                    ui.label(format!(
+                        "v{} {}",
+                        env!("CARGO_PKG_VERSION"),
+                        if cfg!(debug_assertions) { "(dev)" } else { "" }
+                    ));
                 });
                 // ui.separator();
             });
@@ -156,7 +171,7 @@ pub fn run() {
         viewport: egui::ViewportBuilder::default()
             .with_resizable(false)
             .with_maximize_button(false)
-            .with_inner_size([250.0, 180.0])
+            .with_inner_size([250.0, 225.0])
             .with_icon(load_icon()),
         centered: true,
         ..Default::default()
