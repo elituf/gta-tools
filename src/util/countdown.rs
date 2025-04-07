@@ -1,15 +1,15 @@
 use std::time::{Duration, Instant};
 
 pub struct Countdown {
-    pub i: usize,
-    pub i_original: usize,
+    pub i: u64,
+    pub i_original: u64,
     pub i_string: String,
     pub interval: Instant,
     pub first_count: bool,
 }
 
 impl Countdown {
-    pub fn new(i: usize) -> Self {
+    pub fn new(i: u64) -> Self {
         Self {
             i,
             i_original: i,

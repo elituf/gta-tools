@@ -21,7 +21,7 @@ impl Default for EmptySession {
         Self {
             disabled: false,
             interval: Instant::now(),
-            countdown: Countdown::new(features::empty_session::INTERVAL.as_secs() as usize),
+            countdown: Countdown::new(features::empty_session::INTERVAL.as_secs()),
         }
     }
 }

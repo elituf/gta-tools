@@ -1,8 +1,6 @@
+use crate::util::consts::{ENHANCED, LEGACY};
 use std::time::Instant;
 use sysinfo::System;
-
-const ENHANCED: &str = "GTA5_Enhanced.exe";
-const LEGACY: &str = "GTA5.exe";
 
 pub struct ForceClose {
     pub button_text: String,
@@ -20,6 +18,14 @@ impl Default for ForceClose {
     }
 }
 
+impl ForceClose {
+    pub fn prompting(&mut self) {
+        self.button_text = "Are you sure?".to_string();
+        self.prompting = true;
+        self.interval = Instant::now();
+    }
+}
+
 pub fn activate(sysinfo: &mut System) {
     sysinfo.refresh_all();
     sysinfo
@@ -29,4 +35,5 @@ pub fn activate(sysinfo: &mut System) {
         .for_each(|(_, p)| {
             p.kill();
         });
+    sysinfo.refresh_all();
 }

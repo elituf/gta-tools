@@ -6,26 +6,45 @@ use crate::{
         force_close::ForceClose,
         launch::{Launch, Platform},
     },
-    util::elevate,
+    util::{
+        consts::{ENHANCED, LEGACY},
+        elevation,
+    },
 };
 use eframe::egui;
 use std::time::{Duration, Instant};
 use sysinfo::System;
 use windows::Win32::Foundation::HANDLE;
 
+#[derive(Default, PartialEq, Eq)]
+pub enum Stage {
+    #[default]
+    Main,
+    About,
+    Debug,
+}
+
 pub struct App {
-    pub current_frame: bool,
+    stage: Stage,
+    debug: bool,
+    initialized: bool,
+    elevated: bool,
+    current_frame: bool,
     pub sysinfo: System,
     pub game_handle: HANDLE,
-    pub launch: Launch,
-    pub force_close: ForceClose,
-    pub empty_session: EmptySession,
-    pub anti_afk: AntiAfk,
+    launch: Launch,
+    force_close: ForceClose,
+    empty_session: EmptySession,
+    anti_afk: AntiAfk,
 }
 
 impl Default for App {
     fn default() -> Self {
         Self {
+            stage: Stage::default(),
+            initialized: false,
+            debug: false,
+            elevated: elevation::is_elevated(),
             current_frame: false,
             sysinfo: System::new_all(),
             game_handle: HANDLE::default(),
@@ -39,114 +58,200 @@ impl Default for App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        catppuccin_egui::set_theme(ctx, catppuccin_egui::MOCHA);
+        if !self.initialized {
+            catppuccin_egui::set_theme(ctx, catppuccin_egui::MOCHA);
+            egui_extras::install_image_loaders(ctx);
+            self.initialized = true;
+        }
         ctx.request_repaint_after(Duration::from_millis(100));
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                ui.label("Game");
-                ui.add(egui::Separator::default().horizontal());
-            });
-            ui.horizontal(|ui| {
-                if ui.button("Launch").clicked() {
-                    features::launch::launch(&self.launch.selected);
-                };
-                egui::ComboBox::from_label("")
-                    .selected_text(self.launch.selected.to_string())
-                    .width(125.0)
-                    .show_ui(ui, |ui| {
-                        ui.selectable_value(
-                            &mut self.launch.selected,
-                            Platform::Steam,
-                            Platform::Steam.to_string(),
-                        );
-                        ui.selectable_value(
-                            &mut self.launch.selected,
-                            Platform::Rockstar,
-                            Platform::Rockstar.to_string(),
-                        );
-                        ui.selectable_value(
-                            &mut self.launch.selected,
-                            Platform::Epic,
-                            Platform::Epic.to_string(),
-                        );
-                    });
-            });
-            let force_close_button = ui.button(&self.force_close.button_text);
-            if force_close_button.clicked() && !self.force_close.prompting {
-                self.force_close.button_text = "Are you sure?".to_string();
-                self.force_close.prompting = true;
-                self.force_close.interval = Instant::now();
-                self.current_frame = true;
-            };
-            if self.force_close.prompting
-                && self.force_close.interval.elapsed() <= Duration::from_secs(3)
-            {
-                if force_close_button.clicked() && !self.current_frame {
-                    features::force_close::activate(&mut self.sysinfo);
-                    self.force_close = ForceClose::default();
+        ctx.input(|i| {
+            if i.modifiers.all() && i.key_pressed(egui::Key::D) {
+                self.debug = !self.debug;
+                if !self.debug && self.stage == Stage::Debug {
+                    self.stage = Stage::Main;
                 }
-            } else {
-                self.force_close = ForceClose::default();
             }
-            if self.current_frame {
-                self.current_frame = false;
-            }
+        });
+        self.run_timers();
+        egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
             ui.horizontal(|ui| {
-                ui.label("Session");
-                ui.add(egui::Separator::default().horizontal());
-            });
-            ui.add_enabled_ui(!self.empty_session.disabled, |ui| {
-                ui.horizontal(|ui| {
-                    if ui.button("Empty current session").clicked() {
-                        self.empty_session.interval = Instant::now();
-                        self.empty_session.disabled = true;
-                        features::empty_session::activate(self);
+                ui.selectable_value(&mut self.stage, Stage::Main, "Main");
+                ui.selectable_value(&mut self.stage, Stage::About, "About");
+                if self.debug {
+                    ui.selectable_value(&mut self.stage, Stage::Debug, "Debug");
+                }
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    let button = ui
+                        .add_enabled(!self.elevated, egui::Button::new("Elevate"))
+                        .on_disabled_hover_text("We are already running elevated.");
+                    if button.clicked() {
+                        elevation::elevate();
                     }
-                    if self.empty_session.disabled {
-                        self.empty_session.countdown.count();
-                    } else {
-                        self.empty_session.countdown.reset();
-                    }
-                    if self.empty_session.interval.elapsed() >= features::empty_session::INTERVAL {
-                        features::empty_session::deactivate(self);
-                        self.empty_session.disabled = false;
-                    }
-                    ui.label(&self.empty_session.countdown.i_string);
                 });
-            });
-            ui.checkbox(&mut self.anti_afk.enabled, "Anti AFK")
-                .on_hover_text("You should be tabbed in\nwhile this is enabled.");
-            if self.anti_afk.enabled
-                && self.anti_afk.interval.elapsed() >= features::anti_afk::INTERVAL
-            {
-                features::anti_afk::activate();
-                self.anti_afk.interval = Instant::now();
-            }
-            // ui.horizontal(|ui| {
-            //     ui.label("Network");
-            //     ui.add(egui::Separator::default().horizontal());
-            // });
-            // if ui.button("Elevate").clicked() {
-            //     elevate::elevate();
-            // }
-            // ui.checkbox(&mut false, "Block connections to Rockstar");
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
-                ui.horizontal(|ui| {
-                    ui.horizontal(|ui| {
-                        ui.spacing_mut().item_spacing.x = 0.0;
-                        ui.label("with love from ");
-                        ui.hyperlink_to("futile", "http://futile.eu");
-                    });
-                    ui.separator();
-                    ui.label(format!(
-                        "v{} {}",
-                        env!("CARGO_PKG_VERSION"),
-                        if cfg!(debug_assertions) { "(dev)" } else { "" }
-                    ));
-                });
-                // ui.separator();
             });
         });
+        egui::CentralPanel::default().show(ctx, |ui| {
+            egui::ScrollArea::both()
+                .auto_shrink([false, false])
+                .show(ui, |ui| match self.stage {
+                    Stage::Main => {
+                        self.header(ui, "Game");
+                        self.show_game(ctx, ui);
+                        self.header(ui, "Session");
+                        self.show_session(ctx, ui);
+                        self.header(ui, "Network");
+                        self.show_network(ctx, ui);
+                    }
+                    Stage::About => {
+                        self.show_about(ctx, ui);
+                    }
+                    Stage::Debug => {
+                        self.show_debug(ctx, ui);
+                    }
+                });
+        });
+    }
+}
+
+impl App {
+    fn header(&self, ui: &mut egui::Ui, text: &str) {
+        ui.horizontal(|ui| {
+            ui.label(text);
+            ui.add(egui::Separator::default().horizontal());
+        });
+    }
+
+    fn show_game(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            if ui.button("Launch").clicked() {
+                features::launch::launch(&self.launch.selected);
+            };
+            egui::ComboBox::from_label("")
+                .selected_text(self.launch.selected.to_string())
+                .width(125.0)
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(
+                        &mut self.launch.selected,
+                        Platform::Steam,
+                        Platform::Steam.to_string(),
+                    );
+                    ui.selectable_value(
+                        &mut self.launch.selected,
+                        Platform::Rockstar,
+                        Platform::Rockstar.to_string(),
+                    );
+                    ui.selectable_value(
+                        &mut self.launch.selected,
+                        Platform::Epic,
+                        Platform::Epic.to_string(),
+                    );
+                });
+        });
+        let force_close_button = ui.button(&self.force_close.button_text);
+        if force_close_button.clicked() && !self.force_close.prompting {
+            self.force_close.prompting();
+            self.current_frame = true;
+        };
+        if self.force_close.prompting
+            && self.force_close.interval.elapsed() <= Duration::from_secs(3)
+        {
+            if force_close_button.clicked() && !self.current_frame {
+                features::force_close::activate(&mut self.sysinfo);
+                self.force_close = ForceClose::default();
+            }
+        } else {
+            self.force_close = ForceClose::default();
+        }
+        if self.current_frame {
+            self.current_frame = false;
+        }
+    }
+
+    fn show_session(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        ui.add_enabled_ui(!self.empty_session.disabled, |ui| {
+            ui.horizontal(|ui| {
+                if ui.button("Empty current session").clicked() {
+                    self.empty_session.interval = Instant::now();
+                    self.empty_session.disabled = true;
+                    features::empty_session::activate(self);
+                }
+                ui.label(&self.empty_session.countdown.i_string);
+            });
+        });
+        ui.checkbox(&mut self.anti_afk.enabled, "Anti AFK")
+            .on_hover_text("You should be tabbed in\nwhile this is enabled.");
+        if self.anti_afk.enabled && self.anti_afk.interval.elapsed() >= features::anti_afk::INTERVAL
+        {
+            features::anti_afk::activate();
+            self.anti_afk.interval = Instant::now();
+        }
+    }
+
+    fn show_network(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        egui::Frame::new()
+            .inner_margin(egui::vec2(4.0, 4.0))
+            .stroke(egui::Stroke::new(1.0, catppuccin_egui::MOCHA.overlay1))
+            .show(ui, |ui| {
+                let response = ui.add_enabled_ui(self.elevated, |ui| {
+                    ui.label("GTA's network access");
+                    ui.horizontal(|ui| {
+                        if ui.button("Block").clicked() {
+                            features::game_networking::block_all(&mut self.sysinfo);
+                        };
+                        if ui.button("Unblock").clicked() {
+                            features::game_networking::unblock_all();
+                        };
+                    });
+                });
+                response.response.on_disabled_hover_text(
+                    "This requires you to be running as\nadministrator. Use the Elevate button.",
+                )
+            });
+    }
+
+    fn show_about(&self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
+            ui.horizontal(|ui| {
+                ui.horizontal(|ui| {
+                    ui.spacing_mut().item_spacing.x = 0.0;
+                    ui.label("with love from ");
+                    ui.hyperlink_to("futile", "http://futile.eu");
+                });
+                ui.separator();
+                ui.label(format!(
+                    "v{} {}",
+                    env!("CARGO_PKG_VERSION"),
+                    if cfg!(debug_assertions) { "(dev)" } else { "" }
+                ));
+            });
+            ui.add(egui::Image::new(egui::include_image!("../assets/icon.png")))
+        });
+    }
+
+    fn show_debug(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        let pid = self
+            .sysinfo
+            .processes()
+            .iter()
+            .find(|(_, p)| p.name() == ENHANCED || p.name() == LEGACY)
+            .map(|(pid, _)| pid.as_u32().to_string())
+            .unwrap_or_else(|| "no pid found!".to_string());
+        if ui.button("refresh sysinfo").clicked() {
+            self.sysinfo.refresh_all();
+        }
+        ui.label(format!("gta pid: {pid}"));
+    }
+
+    fn run_timers(&mut self) {
+        if self.empty_session.disabled {
+            self.empty_session.countdown.count();
+        } else {
+            self.empty_session.countdown.reset();
+        }
+        if self.empty_session.interval.elapsed() >= features::empty_session::INTERVAL {
+            features::empty_session::deactivate(self);
+            self.empty_session.disabled = false;
+        }
     }
 }
 
@@ -158,7 +263,6 @@ fn load_icon() -> eframe::egui::IconData {
         let rgba = image.into_raw();
         (rgba, width, height)
     };
-
     eframe::egui::IconData {
         rgba: icon_rgba,
         width: icon_width,
@@ -171,7 +275,7 @@ pub fn run() {
         viewport: egui::ViewportBuilder::default()
             .with_resizable(false)
             .with_maximize_button(false)
-            .with_inner_size([250.0, 225.0])
+            .with_inner_size([256.0, 232.0])
             .with_icon(load_icon()),
         centered: true,
         ..Default::default()
