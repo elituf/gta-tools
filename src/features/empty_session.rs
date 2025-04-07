@@ -6,7 +6,7 @@ use windows::Win32::{
     System::Threading::{OpenProcess, PROCESS_SUSPEND_RESUME},
 };
 
-pub const INTERVAL: Duration = Duration::from_secs(10);
+pub const INTERVAL: Duration = Duration::from_secs(8);
 const ENHANCED: &str = "GTA5_Enhanced.exe";
 const LEGACY: &str = "GTA5.exe";
 

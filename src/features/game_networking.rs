@@ -1,8 +1,11 @@
+#![allow(clippy::zombie_processes)]
+
 use crate::util::consts::{ENHANCED, LEGACY};
-use std::{path::Path, process::Command};
+use std::{os::windows::process::CommandExt, path::Path, process::Command};
 use sysinfo::System;
 
 const FILTER_NAME: &str = "[GTA Tools] Block all traffic for GTA V";
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
 fn get_game_exe_path(sysinfo: &mut System) -> Option<&Path> {
     sysinfo.refresh_all();
@@ -34,6 +37,7 @@ pub fn block_all(sysinfo: &mut System) {
             "protocol=ANY",
             &format!("program={exe_path}"),
         ])
+        .creation_flags(CREATE_NO_WINDOW)
         .spawn()
         .unwrap();
     Command::new("netsh")
@@ -48,6 +52,7 @@ pub fn block_all(sysinfo: &mut System) {
             "protocol=ANY",
             &format!("program={exe_path}"),
         ])
+        .creation_flags(CREATE_NO_WINDOW)
         .spawn()
         .unwrap();
 }
@@ -61,16 +66,7 @@ pub fn unblock_all() {
             "rule",
             &format!("name={FILTER_NAME}"),
         ])
-        .spawn()
-        .unwrap();
-    Command::new("netsh")
-        .args([
-            "advfirewall",
-            "firewall",
-            "delete",
-            "rule",
-            &format!("name={FILTER_NAME}"),
-        ])
+        .creation_flags(CREATE_NO_WINDOW)
         .spawn()
         .unwrap();
 }

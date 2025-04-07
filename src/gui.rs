@@ -16,6 +16,8 @@ use std::time::{Duration, Instant};
 use sysinfo::System;
 use windows::Win32::Foundation::HANDLE;
 
+const THEME: catppuccin_egui::Theme = catppuccin_egui::MOCHA;
+
 #[derive(Default, PartialEq, Eq)]
 pub enum Stage {
     #[default]
@@ -24,6 +26,7 @@ pub enum Stage {
     Debug,
 }
 
+#[allow(clippy::struct_excessive_bools)]
 pub struct App {
     stage: Stage,
     debug: bool,
@@ -59,7 +62,7 @@ impl Default for App {
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         if !self.initialized {
-            catppuccin_egui::set_theme(ctx, catppuccin_egui::MOCHA);
+            catppuccin_egui::set_theme(ctx, THEME);
             egui_extras::install_image_loaders(ctx);
             self.initialized = true;
         }
@@ -83,6 +86,7 @@ impl eframe::App for App {
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     let button = ui
                         .add_enabled(!self.elevated, egui::Button::new("Elevate"))
+                        .on_hover_text("Relaunch ourselves as administrator.")
                         .on_disabled_hover_text("We are already running elevated.");
                     if button.clicked() {
                         elevation::elevate();
@@ -114,6 +118,7 @@ impl eframe::App for App {
 }
 
 impl App {
+    #[allow(clippy::unused_self)]
     fn header(&self, ui: &mut egui::Ui, text: &str) {
         ui.horizontal(|ui| {
             ui.label(text);
@@ -128,7 +133,7 @@ impl App {
             };
             egui::ComboBox::from_label("")
                 .selected_text(self.launch.selected.to_string())
-                .width(125.0)
+                .width(120.0)
                 .show_ui(ui, |ui| {
                     ui.selectable_value(
                         &mut self.launch.selected,
@@ -190,10 +195,10 @@ impl App {
     fn show_network(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
         egui::Frame::new()
             .inner_margin(egui::vec2(4.0, 4.0))
-            .stroke(egui::Stroke::new(1.0, catppuccin_egui::MOCHA.overlay1))
+            .stroke(egui::Stroke::new(1.0, THEME.overlay1))
             .show(ui, |ui| {
                 let response = ui.add_enabled_ui(self.elevated, |ui| {
-                    ui.label("GTA's network access");
+                    ui.label("Game's network access");
                     ui.horizontal(|ui| {
                         if ui.button("Block").clicked() {
                             features::game_networking::block_all(&mut self.sysinfo);
@@ -203,12 +208,13 @@ impl App {
                         };
                     });
                 });
-                response.response.on_disabled_hover_text(
-                    "This requires you to be running as\nadministrator. Use the Elevate button.",
-                )
+                response
+                    .response
+                    .on_disabled_hover_text("This requires administrator.\nUse the Elevate button.")
             });
     }
 
+    #[allow(clippy::unused_self)]
     fn show_about(&self, _ctx: &egui::Context, ui: &mut egui::Ui) {
         ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
             ui.horizontal(|ui| {
@@ -217,12 +223,13 @@ impl App {
                     ui.label("with love from ");
                     ui.hyperlink_to("futile", "http://futile.eu");
                 });
-                ui.separator();
-                ui.label(format!(
-                    "v{} {}",
-                    env!("CARGO_PKG_VERSION"),
-                    if cfg!(debug_assertions) { "(dev)" } else { "" }
-                ));
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.label(format!(
+                        "v{} {}",
+                        env!("CARGO_PKG_VERSION"),
+                        if cfg!(debug_assertions) { "(dev)" } else { "" }
+                    ));
+                });
             });
             ui.add(egui::Image::new(egui::include_image!("../assets/icon.png")))
         });
@@ -234,8 +241,10 @@ impl App {
             .processes()
             .iter()
             .find(|(_, p)| p.name() == ENHANCED || p.name() == LEGACY)
-            .map(|(pid, _)| pid.as_u32().to_string())
-            .unwrap_or_else(|| "no pid found!".to_string());
+            .map_or_else(
+                || "no pid found!".to_string(),
+                |(pid, _)| pid.as_u32().to_string(),
+            );
         if ui.button("refresh sysinfo").clicked() {
             self.sysinfo.refresh_all();
         }
