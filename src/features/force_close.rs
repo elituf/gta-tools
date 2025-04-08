@@ -2,6 +2,7 @@ use crate::util::consts::{ENHANCED, LEGACY};
 use std::time::Instant;
 use sysinfo::System;
 
+#[derive(Debug)]
 pub struct ForceClose {
     pub button_text: String,
     pub prompting: bool,

@@ -18,15 +18,15 @@ use windows::Win32::Foundation::HANDLE;
 
 const THEME: catppuccin_egui::Theme = catppuccin_egui::MOCHA;
 
-#[derive(Default, PartialEq, Eq)]
+#[derive(Debug, Default, PartialEq, Eq)]
 pub enum Stage {
     #[default]
     Main,
     About,
-    Debug,
 }
 
 #[allow(clippy::struct_excessive_bools)]
+#[derive(Debug)]
 pub struct App {
     stage: Stage,
     debug: bool,
@@ -66,23 +66,11 @@ impl eframe::App for App {
             egui_extras::install_image_loaders(ctx);
             self.initialized = true;
         }
-        ctx.request_repaint_after(Duration::from_millis(100));
-        ctx.input(|i| {
-            if i.modifiers.all() && i.key_pressed(egui::Key::D) {
-                self.debug = !self.debug;
-                if !self.debug && self.stage == Stage::Debug {
-                    self.stage = Stage::Main;
-                }
-            }
-        });
         self.run_timers();
         egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.selectable_value(&mut self.stage, Stage::Main, "Main");
                 ui.selectable_value(&mut self.stage, Stage::About, "About");
-                if self.debug {
-                    ui.selectable_value(&mut self.stage, Stage::Debug, "Debug");
-                }
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     let button = ui
                         .add_enabled(!self.elevated, egui::Button::new("Elevate"))
@@ -109,15 +97,59 @@ impl eframe::App for App {
                     Stage::About => {
                         self.show_about(ctx, ui);
                     }
-                    Stage::Debug => {
-                        self.show_debug(ctx, ui);
-                    }
                 });
         });
+        if self.check_debug_keycombo_pressed(ctx) {
+            self.debug = !self.debug;
+        }
+        if self.check_debug_viewport_close_button_pressed(ctx) {
+            self.debug = false;
+        }
+        if self.debug {
+            let main_rect = ctx.input(|i| i.viewport().clone().outer_rect.unwrap());
+            let position = [main_rect.right(), main_rect.min.y];
+            ctx.show_viewport_immediate(
+                egui::ViewportId::from_hash_of("debug_viewport"),
+                egui::ViewportBuilder::default()
+                    .with_title("GTA Tools Debug")
+                    .with_minimize_button(false)
+                    .with_maximize_button(false)
+                    .with_inner_size([256.0, 232.0])
+                    .with_position(position)
+                    .with_icon(load_icon()),
+                |ctx, _class| {
+                    if self.check_debug_keycombo_pressed(ctx) {
+                        self.debug = !self.debug;
+                    }
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        egui::ScrollArea::both()
+                            .auto_shrink([false, false])
+                            .show(ui, |ui| {
+                                self.show_debug(ctx, ui);
+                            });
+                    });
+                },
+            )
+        }
+        ctx.request_repaint_after(Duration::from_millis(100));
     }
 }
 
 impl App {
+    fn check_debug_keycombo_pressed(&self, ctx: &egui::Context) -> bool {
+        ctx.input(|i| i.modifiers.all() && i.key_pressed(egui::Key::D))
+    }
+
+    fn check_debug_viewport_close_button_pressed(&self, ctx: &egui::Context) -> bool {
+        ctx.input(|i| {
+            i.raw
+                .viewports
+                .get(&egui::ViewportId::from_hash_of("debug_viewport"))
+                .filter(|vp| vp.close_requested())
+                .is_some()
+        })
+    }
+
     #[allow(clippy::unused_self)]
     fn header(&self, ui: &mut egui::Ui, text: &str) {
         ui.horizontal(|ui| {
@@ -236,19 +268,22 @@ impl App {
     }
 
     fn show_debug(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
-        let pid = self
-            .sysinfo
-            .processes()
-            .iter()
-            .find(|(_, p)| p.name() == ENHANCED || p.name() == LEGACY)
-            .map_or_else(
-                || "no pid found!".to_string(),
-                |(pid, _)| pid.as_u32().to_string(),
-            );
-        if ui.button("refresh sysinfo").clicked() {
-            self.sysinfo.refresh_all();
-        }
-        ui.label(format!("gta pid: {pid}"));
+        ui.collapsing("sysinfo", |ui| {
+            if ui.button("refresh all").clicked() {
+                self.sysinfo.refresh_all();
+            }
+            let pid = self
+                .sysinfo
+                .processes()
+                .iter()
+                .find(|(_, p)| p.name() == ENHANCED || p.name() == LEGACY)
+                .map_or_else(
+                    || "no pid found!".to_string(),
+                    |(pid, _)| pid.as_u32().to_string(),
+                );
+            ui.label(format!("gta pid: {pid}"));
+        });
+        ui.collapsing("app state", |ui| ui.label(format!("{:#?}", self)));
     }
 
     fn run_timers(&mut self) {

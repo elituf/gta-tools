@@ -1,5 +1,6 @@
 use std::time::{Duration, Instant};
 
+#[derive(Debug)]
 pub struct Countdown {
     pub i: u64,
     pub i_original: u64,

@@ -10,6 +10,7 @@ pub const INTERVAL: Duration = Duration::from_secs(8);
 const ENHANCED: &str = "GTA5_Enhanced.exe";
 const LEGACY: &str = "GTA5.exe";
 
+#[derive(Debug)]
 pub struct EmptySession {
     pub disabled: bool,
     pub interval: Instant,

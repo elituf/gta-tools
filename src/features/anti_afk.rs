@@ -6,6 +6,7 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{
 pub const INTERVAL: Duration = Duration::from_secs(60);
 const VK_SHIFT: u8 = 16;
 
+#[derive(Debug)]
 pub struct AntiAfk {
     pub enabled: bool,
     pub interval: Instant,

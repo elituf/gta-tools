@@ -20,7 +20,7 @@ impl Display for Platform {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Launch {
     pub selected: Platform,
 }
