@@ -1366,7 +1366,7 @@ dependencies = [
 
 [[package]]
 name = "gta-tools"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "catppuccin-egui",
  "dirs",
