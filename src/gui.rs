@@ -26,10 +26,10 @@ use windows::Win32::Foundation::HANDLE;
 const THEME: catppuccin_egui::Theme = catppuccin_egui::MOCHA;
 const WINDOW_SIZE: [f32; 2] = [240.0, 240.0];
 static CONFIG_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
-    let mut config_path = dirs::config_local_dir().unwrap();
-    config_path.push("GTA Tools");
-    config_path.push("config.json");
-    config_path
+    dirs::config_local_dir()
+        .unwrap()
+        .join("GTA Tools")
+        .join("config.json")
 });
 
 #[derive(Serialize, Deserialize)]
@@ -129,7 +129,12 @@ impl eframe::App for App {
             self.debug = false;
         }
         if self.debug {
-            let main_rect = ctx.input(|i| i.viewport().clone().outer_rect.unwrap());
+            let main_rect = ctx.input(|i| {
+                i.viewport()
+                    .clone()
+                    .outer_rect
+                    .unwrap_or(egui::Rect::EVERYTHING)
+            });
             let position = [main_rect.right(), main_rect.min.y];
             ctx.show_viewport_immediate(
                 egui::ViewportId::from_hash_of("debug_viewport"),
