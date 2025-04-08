@@ -1,7 +1,8 @@
+use serde::{Deserialize, Serialize};
 use std::{fmt::Display, path::PathBuf, process::Command};
 use winreg::{RegKey, enums::HKEY_LOCAL_MACHINE};
 
-#[derive(Default, Debug, PartialEq, Eq)]
+#[derive(Clone, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Platform {
     #[default]
     Steam,

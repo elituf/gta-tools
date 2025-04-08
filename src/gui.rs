@@ -12,11 +12,29 @@ use crate::{
     },
 };
 use eframe::egui;
-use std::time::{Duration, Instant};
+use serde::{Deserialize, Serialize};
+use std::{
+    fs::{self, File},
+    io::Write,
+    path::PathBuf,
+    sync::LazyLock,
+    time::{Duration, Instant},
+};
 use sysinfo::System;
 use windows::Win32::Foundation::HANDLE;
 
 const THEME: catppuccin_egui::Theme = catppuccin_egui::MOCHA;
+static CONFIG_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
+    let mut config_path = dirs::config_local_dir().unwrap();
+    config_path.push("GTA Tools");
+    config_path.push("config.json");
+    config_path
+});
+
+#[derive(Serialize, Deserialize)]
+struct PersistentState {
+    launcher: Platform,
+}
 
 #[derive(Debug, Default, PartialEq, Eq)]
 pub enum Stage {
@@ -64,6 +82,11 @@ impl eframe::App for App {
         if !self.initialized {
             catppuccin_egui::set_theme(ctx, THEME);
             egui_extras::install_image_loaders(ctx);
+            if let Ok(config) = fs::read_to_string(CONFIG_PATH.as_path()) {
+                if let Ok(persistent_state) = serde_json::from_str::<PersistentState>(&config) {
+                    self.launch.selected = persistent_state.launcher;
+                }
+            }
             self.initialized = true;
         }
         self.run_timers();
@@ -296,6 +319,22 @@ impl App {
             features::empty_session::deactivate(self);
             self.empty_session.disabled = false;
         }
+    }
+}
+
+impl Drop for App {
+    fn drop(&mut self) {
+        let persistent_state = PersistentState {
+            launcher: self.launch.selected.clone(),
+        };
+        let config_path = CONFIG_PATH.as_path();
+        let config_path_parent = config_path.parent().unwrap();
+        if !config_path_parent.exists() {
+            fs::create_dir(config_path_parent).unwrap();
+        }
+        let mut config_file = File::create(config_path).unwrap();
+        let json = serde_json::to_string_pretty(&persistent_state).unwrap();
+        config_file.write_all(json.as_bytes()).unwrap();
     }
 }
 
