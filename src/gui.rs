@@ -122,10 +122,10 @@ impl eframe::App for App {
             }
             Stage::About => self.show_about(ctx, ui),
         });
-        if self.check_debug_keycombo_pressed(ctx) {
+        if check_debug_keycombo_pressed(ctx) {
             self.debug = !self.debug;
         }
-        if self.check_debug_viewport_close_button_pressed(ctx) {
+        if check_debug_viewport_close_button_pressed(ctx) {
             self.debug = false;
         }
         if self.debug {
@@ -141,7 +141,7 @@ impl eframe::App for App {
                     .with_position(position)
                     .with_icon(load_icon()),
                 |ctx, _class| {
-                    if self.check_debug_keycombo_pressed(ctx) {
+                    if check_debug_keycombo_pressed(ctx) {
                         self.debug = !self.debug;
                     }
                     egui::CentralPanel::default().show(ctx, |ui| {
@@ -152,7 +152,7 @@ impl eframe::App for App {
                             });
                     });
                 },
-            )
+            );
         }
         ctx.request_repaint_after(Duration::from_millis(100));
         if self.closing {
@@ -162,20 +162,6 @@ impl eframe::App for App {
 }
 
 impl App {
-    fn check_debug_keycombo_pressed(&self, ctx: &egui::Context) -> bool {
-        ctx.input(|i| i.modifiers.all() && i.key_pressed(egui::Key::D))
-    }
-
-    fn check_debug_viewport_close_button_pressed(&self, ctx: &egui::Context) -> bool {
-        ctx.input(|i| {
-            i.raw
-                .viewports
-                .get(&egui::ViewportId::from_hash_of("debug_viewport"))
-                .filter(|vp| vp.close_requested())
-                .is_some()
-        })
-    }
-
     #[allow(clippy::unused_self)]
     fn header(&self, ui: &mut egui::Ui, text: &str) {
         ui.horizontal(|ui| {
@@ -321,7 +307,7 @@ impl App {
                 );
             ui.label(format!("gta pid: {pid}"));
         });
-        ui.collapsing("app state", |ui| ui.label(format!("{:#?}", self)));
+        ui.collapsing("app state", |ui| ui.label(format!("{self:#?}")));
     }
 
     fn run_timers(&mut self) {
@@ -354,6 +340,20 @@ impl Drop for App {
         // make sure we are not suspending game
         features::empty_session::deactivate(self);
     }
+}
+
+fn check_debug_keycombo_pressed(ctx: &egui::Context) -> bool {
+    ctx.input(|i| i.modifiers.all() && i.key_pressed(egui::Key::D))
+}
+
+fn check_debug_viewport_close_button_pressed(ctx: &egui::Context) -> bool {
+    ctx.input(|i| {
+        i.raw
+            .viewports
+            .get(&egui::ViewportId::from_hash_of("debug_viewport"))
+            .filter(|vp| vp.close_requested())
+            .is_some()
+    })
 }
 
 fn load_icon() -> eframe::egui::IconData {
