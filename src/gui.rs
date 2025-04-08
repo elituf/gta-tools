@@ -24,7 +24,7 @@ use sysinfo::System;
 use windows::Win32::Foundation::HANDLE;
 
 const THEME: catppuccin_egui::Theme = catppuccin_egui::MOCHA;
-const WINDOW_SIZE: [f32; 2] = [267.0, 237.0];
+const WINDOW_SIZE: [f32; 2] = [240.0, 240.0];
 static CONFIG_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
     let mut config_path = dirs::config_local_dir().unwrap();
     config_path.push("GTA Tools");
@@ -90,7 +90,7 @@ impl eframe::App for App {
                     self.launch.selected = persistent_state.launcher;
                 }
             }
-            ctx.style_mut(|style| style.spacing.item_spacing = egui::vec2(3.0, 3.0));
+            ctx.style_mut(|style| style.spacing.item_spacing = egui::vec2(4.0, 4.0));
             self.initialized = true;
         }
         self.run_timers();
@@ -111,22 +111,16 @@ impl eframe::App for App {
                     });
                 });
             });
-        egui::CentralPanel::default().show(ctx, |ui| {
-            egui::ScrollArea::both()
-                .auto_shrink([false, false])
-                .show(ui, |ui| match self.stage {
-                    Stage::Main => {
-                        self.header(ui, "Game");
-                        self.show_game(ctx, ui);
-                        self.header(ui, "Session");
-                        self.show_session(ctx, ui);
-                        self.header(ui, "Network");
-                        self.show_network(ctx, ui);
-                    }
-                    Stage::About => {
-                        self.show_about(ctx, ui);
-                    }
-                });
+        egui::CentralPanel::default().show(ctx, |ui| match self.stage {
+            Stage::Main => {
+                self.header(ui, "Game");
+                self.show_game(ctx, ui);
+                self.header(ui, "Session");
+                self.show_session(ctx, ui);
+                self.header(ui, "Network");
+                self.show_network(ctx, ui);
+            }
+            Stage::About => self.show_about(ctx, ui),
         });
         if self.check_debug_keycombo_pressed(ctx) {
             self.debug = !self.debug;
@@ -347,7 +341,7 @@ impl Drop for App {
     fn drop(&mut self) {
         // save any persistent state to config file
         let persistent_state = PersistentState {
-            launcher: self.launch.selected.clone(),
+            launcher: self.launch.selected,
         };
         let config_path = CONFIG_PATH.as_path();
         let config_path_parent = config_path.parent().unwrap();
