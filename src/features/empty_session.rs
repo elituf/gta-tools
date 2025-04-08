@@ -58,7 +58,9 @@ pub fn activate(app: &mut App) {
 
 pub fn deactivate(app: &mut App) {
     unsafe {
-        let _ = NtResumeProcess(app.game_handle);
-        let _ = CloseHandle(app.game_handle);
+        if !app.game_handle.is_invalid() {
+            let _ = NtResumeProcess(app.game_handle);
+            let _ = CloseHandle(app.game_handle);
+        }
     }
 }
