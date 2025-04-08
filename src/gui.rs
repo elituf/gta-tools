@@ -9,6 +9,7 @@ use crate::{
     util::{
         consts::{ENHANCED, LEGACY},
         elevation,
+        ui_ext::UiExt,
     },
 };
 use eframe::egui;
@@ -89,6 +90,7 @@ impl eframe::App for App {
                     self.launch.selected = persistent_state.launcher;
                 }
             }
+            ctx.style_mut(|style| style.spacing.item_spacing = egui::vec2(3.0, 3.0));
             self.initialized = true;
         }
         self.run_timers();
@@ -212,7 +214,10 @@ impl App {
                     );
                 });
         });
-        let force_close_button = ui.button(&self.force_close.button_text);
+        let force_close_button = ui.add_sized_left_aligned(
+            [105.0, 0.0],
+            egui::Button::new(&self.force_close.button_text),
+        );
         if force_close_button.clicked() && !self.force_close.prompting {
             self.force_close.prompting();
             self.current_frame = true;
@@ -244,7 +249,7 @@ impl App {
             });
         });
         ui.checkbox(&mut self.anti_afk.enabled, "Anti AFK")
-            .on_hover_text("You should be tabbed in\nwhile this is enabled.");
+            .on_hover_text("You should be tabbed in\nfor this to work.");
         if self.anti_afk.enabled && self.anti_afk.interval.elapsed() >= features::anti_afk::INTERVAL
         {
             features::anti_afk::activate();
@@ -258,12 +263,21 @@ impl App {
             .stroke(egui::Stroke::new(1.0, THEME.overlay1))
             .show(ui, |ui| {
                 let response = ui.add_enabled_ui(self.elevated, |ui| {
-                    ui.label("Game's network access");
+                    let label = ui.label("Game's network access");
                     ui.horizontal(|ui| {
-                        if ui.button("Block").clicked() {
+                        let available_width = label.rect.width();
+                        let spacing = ui.spacing().item_spacing.x;
+                        let button_width = (available_width - spacing) / 2.0;
+                        if ui
+                            .add_sized([button_width, 18.0], egui::Button::new("Block"))
+                            .clicked()
+                        {
                             features::game_networking::block_all(&mut self.sysinfo);
                         };
-                        if ui.button("Unblock").clicked() {
+                        if ui
+                            .add_sized([button_width, 18.0], egui::Button::new("Unblock"))
+                            .clicked()
+                        {
                             features::game_networking::unblock_all();
                         };
                     });
