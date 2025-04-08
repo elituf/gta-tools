@@ -343,6 +343,7 @@ impl App {
 
 impl Drop for App {
     fn drop(&mut self) {
+        // save any persistent state to config file
         let persistent_state = PersistentState {
             launcher: self.launch.selected.clone(),
         };
@@ -354,7 +355,7 @@ impl Drop for App {
         let mut config_file = File::create(config_path).unwrap();
         let json = serde_json::to_string_pretty(&persistent_state).unwrap();
         config_file.write_all(json.as_bytes()).unwrap();
-        //
+        // make sure we are not suspending game
         features::empty_session::deactivate(self);
     }
 }
