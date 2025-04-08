@@ -9,7 +9,6 @@ use crate::{
     util::{
         consts::{ENHANCED, LEGACY},
         elevation,
-        ui_ext::UiExt,
     },
 };
 use eframe::egui;
@@ -25,6 +24,7 @@ use sysinfo::System;
 use windows::Win32::Foundation::HANDLE;
 
 const THEME: catppuccin_egui::Theme = catppuccin_egui::MOCHA;
+const WINDOW_SIZE: [f32; 2] = [267.0, 237.0];
 static CONFIG_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
     let mut config_path = dirs::config_local_dir().unwrap();
     config_path.push("GTA Tools");
@@ -94,21 +94,23 @@ impl eframe::App for App {
             self.initialized = true;
         }
         self.run_timers();
-        egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                ui.selectable_value(&mut self.stage, Stage::Main, "Main");
-                ui.selectable_value(&mut self.stage, Stage::About, "About");
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    let button = ui
-                        .add_enabled(!self.elevated, egui::Button::new("Elevate"))
-                        .on_hover_text("Relaunch ourselves as administrator.")
-                        .on_disabled_hover_text("We are already running elevated.");
-                    if button.clicked() {
-                        elevation::elevate(&mut self.closing);
-                    }
+        egui::TopBottomPanel::bottom("bottom_panel")
+            .exact_height(25.0)
+            .show(ctx, |ui| {
+                ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                    ui.selectable_value(&mut self.stage, Stage::Main, "Main");
+                    ui.selectable_value(&mut self.stage, Stage::About, "About");
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        let button = ui
+                            .add_enabled(!self.elevated, egui::Button::new("Elevate"))
+                            .on_hover_text("Relaunch ourselves as administrator.")
+                            .on_disabled_hover_text("We are already running elevated.");
+                        if button.clicked() {
+                            elevation::elevate(&mut self.closing);
+                        }
+                    });
                 });
             });
-        });
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::ScrollArea::both()
                 .auto_shrink([false, false])
@@ -141,7 +143,7 @@ impl eframe::App for App {
                     .with_title("GTA Tools Debug")
                     .with_minimize_button(false)
                     .with_maximize_button(false)
-                    .with_inner_size([256.0, 232.0])
+                    .with_inner_size(WINDOW_SIZE)
                     .with_position(position)
                     .with_icon(load_icon()),
                 |ctx, _class| {
@@ -214,8 +216,8 @@ impl App {
                     );
                 });
         });
-        let force_close_button = ui.add_sized_left_aligned(
-            [105.0, 0.0],
+        let force_close_button = ui.add_sized(
+            [104.0, 0.0],
             egui::Button::new(&self.force_close.button_text),
         );
         if force_close_button.clicked() && !self.force_close.prompting {
@@ -282,9 +284,9 @@ impl App {
                         };
                     });
                 });
-                response
-                    .response
-                    .on_disabled_hover_text("This requires administrator.\nUse the Elevate button.")
+                response.response.on_disabled_hover_text(
+                    "This requires administrator.\nUse the Elevate button.",
+                );
             });
     }
 
@@ -305,7 +307,7 @@ impl App {
                     ));
                 });
             });
-            ui.add(egui::Image::new(egui::include_image!("../assets/icon.png")))
+            ui.add(egui::Image::new(egui::include_image!("../assets/icon.png")));
         });
     }
 
@@ -376,7 +378,7 @@ pub fn run() {
         viewport: egui::ViewportBuilder::default()
             .with_resizable(false)
             .with_maximize_button(false)
-            .with_inner_size([256.0, 232.0])
+            .with_inner_size(WINDOW_SIZE)
             .with_icon(load_icon()),
         centered: true,
         ..Default::default()
