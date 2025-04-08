@@ -5,5 +5,5 @@ build:
     upx .\target\release\gta-tools.exe --best
 
 install: build
-    cp .\target\release\gta-tools.exe ~\.cargo\bin\
-    cp .\target\release\gta-tools.exe ~\Documents\
+    cp .\target\release\gta-tools.exe ~\.cargo\bin
+    cp .\target\release\gta-tools.exe ~\Documents
