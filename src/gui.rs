@@ -47,6 +47,7 @@ pub enum Stage {
 #[derive(Debug)]
 pub struct App {
     stage: Stage,
+    closing: bool,
     debug: bool,
     initialized: bool,
     elevated: bool,
@@ -63,6 +64,7 @@ impl Default for App {
     fn default() -> Self {
         Self {
             stage: Stage::default(),
+            closing: false,
             initialized: false,
             debug: false,
             elevated: elevation::is_elevated(),
@@ -100,7 +102,7 @@ impl eframe::App for App {
                         .on_hover_text("Relaunch ourselves as administrator.")
                         .on_disabled_hover_text("We are already running elevated.");
                     if button.clicked() {
-                        elevation::elevate();
+                        elevation::elevate(&mut self.closing);
                     }
                 });
             });
@@ -155,6 +157,9 @@ impl eframe::App for App {
             )
         }
         ctx.request_repaint_after(Duration::from_millis(100));
+        if self.closing {
+            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+        }
     }
 }
 

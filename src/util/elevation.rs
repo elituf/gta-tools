@@ -6,7 +6,7 @@ use windows::{
     core::{HSTRING, PCWSTR},
 };
 
-pub fn elevate() {
+pub fn elevate(closing: &mut bool) {
     let exe = std::env::current_exe().unwrap();
     unsafe {
         ShellExecuteW(
@@ -18,7 +18,7 @@ pub fn elevate() {
             SW_HIDE,
         );
     }
-    std::process::exit(0);
+    *closing = true;
 }
 
 pub fn is_elevated() -> bool {
