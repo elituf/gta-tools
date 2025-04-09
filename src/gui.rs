@@ -7,7 +7,8 @@ use crate::{
         launch::{Launch, Platform},
     },
     util::{
-        consts::{ENHANCED, LEGACY},
+        self,
+        consts::{ENHANCED, GTA_WINDOW_TITLE, LEGACY},
         elevation,
     },
 };
@@ -235,12 +236,23 @@ impl App {
                 ui.label(&self.empty_session.countdown.i_string);
             });
         });
-        ui.checkbox(&mut self.anti_afk.enabled, "Anti AFK")
-            .on_hover_text("You should be tabbed in\nfor this to work.");
+        ui.horizontal(|ui| {
+            ui.checkbox(&mut self.anti_afk.enabled, "Anti AFK")
+                .on_hover_text("You should be tabbed in\nfor this to work.");
+            if self.anti_afk.enabled {
+                ui.add_space(8.0);
+                ui.add_enabled_ui(false, |ui| {
+                    ui.label(if util::is_window_focused(GTA_WINDOW_TITLE) {
+                        "GTA is focused."
+                    } else {
+                        "GTA is not focused!"
+                    })
+                });
+            }
+        });
         if self.anti_afk.enabled && self.anti_afk.interval.elapsed() >= features::anti_afk::INTERVAL
         {
-            features::anti_afk::activate();
-            self.anti_afk.interval = Instant::now();
+            self.anti_afk.activate();
         }
     }
 
@@ -297,6 +309,12 @@ impl App {
     }
 
     fn show_debug(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        ui.collapsing("times", |ui| {
+            ui.label(format!(
+                "anti afk timer: {}",
+                self.anti_afk.interval.elapsed().as_secs()
+            ))
+        });
         ui.collapsing("sysinfo", |ui| {
             if ui.button("refresh all").clicked() {
                 self.sysinfo.refresh_all();
