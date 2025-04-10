@@ -1,13 +1,13 @@
+#![allow(clippy::cast_possible_truncation)]
+
 use crate::util::{self, consts::GTA_WINDOW_TITLE};
 use std::time::{Duration, Instant};
 use windows::Win32::UI::Input::KeyboardAndMouse::{
-    KEYBD_EVENT_FLAGS, MAP_VIRTUAL_KEY_TYPE, MapVirtualKeyW, keybd_event,
+    KEYBD_EVENT_FLAGS, MAP_VIRTUAL_KEY_TYPE, MapVirtualKeyW, VK_NUMPAD4, VK_NUMPAD6, keybd_event,
 };
 
 pub const INTERVAL: Duration = Duration::from_secs(60);
-const VK_NUMPAD4: u8 = 0x64;
-const VK_NUMPAD6: u8 = 0x66;
-const PRESS_KEYS: [u8; 2] = [VK_NUMPAD4, VK_NUMPAD6];
+const PRESS_KEYS: [u8; 2] = [VK_NUMPAD4.0 as u8, VK_NUMPAD6.0 as u8];
 
 #[derive(Debug)]
 pub struct AntiAfk {
