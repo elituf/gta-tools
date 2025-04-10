@@ -91,7 +91,10 @@ impl eframe::App for App {
                     self.launch.selected = persistent_state.launcher;
                 }
             }
-            ctx.style_mut(|style| style.spacing.item_spacing = egui::vec2(4.0, 4.0));
+            ctx.style_mut(|style| {
+                style.spacing.item_spacing = egui::vec2(4.0, 4.0);
+                style.interaction.selectable_labels = false;
+            });
             self.initialized = true;
         }
         self.run_timers();
