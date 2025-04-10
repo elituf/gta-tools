@@ -1,3 +1,5 @@
+mod settings;
+
 use crate::{
     features::{
         self,
@@ -6,6 +8,7 @@ use crate::{
         force_close::ForceClose,
         launch::{Launch, Platform},
     },
+    gui::settings::Settings,
     util::{
         self,
         consts::{ENHANCED, GTA_WINDOW_TITLE, LEGACY},
@@ -21,7 +24,6 @@ use std::{
     time::{Duration, Instant},
 };
 
-const THEME: catppuccin_egui::Theme = catppuccin_egui::MOCHA;
 const WINDOW_SIZE: [f32; 2] = [240.0, 240.0];
 static CONFIG_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
     dirs::config_local_dir()
@@ -33,12 +35,14 @@ static CONFIG_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
 #[derive(Serialize, Deserialize)]
 struct PersistentState {
     launcher: Platform,
+    settings: Settings,
 }
 
 #[derive(Debug, Default, PartialEq, Eq)]
 pub enum Stage {
     #[default]
     Main,
+    Settings,
     About,
 }
 
@@ -54,6 +58,7 @@ pub struct Flags {
 
 #[derive(Debug)]
 pub struct App {
+    settings: Settings,
     stage: Stage,
     flags: Flags,
     pub sysinfo: sysinfo::System,
@@ -67,6 +72,7 @@ pub struct App {
 impl Default for App {
     fn default() -> Self {
         Self {
+            settings: Settings::default(),
             stage: Stage::default(),
             flags: Flags::default(),
             sysinfo: sysinfo::System::new_all(),
@@ -82,13 +88,7 @@ impl Default for App {
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         if !self.flags.initialized {
-            catppuccin_egui::set_theme(ctx, THEME);
             egui_extras::install_image_loaders(ctx);
-            if let Ok(config) = fs::read_to_string(CONFIG_PATH.as_path()) {
-                if let Ok(persistent_state) = serde_json::from_str::<PersistentState>(&config) {
-                    self.launch.selected = persistent_state.launcher;
-                }
-            }
             ctx.style_mut(|style| {
                 style.spacing.item_spacing = egui::vec2(4.0, 4.0);
                 style.interaction.selectable_labels = false;
@@ -96,12 +96,14 @@ impl eframe::App for App {
             self.flags.elevated = util::win::is_elevated();
             self.flags.initialized = true;
         }
+        catppuccin_egui::set_theme(ctx, self.settings.theme.into());
         self.run_timers();
         egui::TopBottomPanel::bottom("bottom_panel")
             .exact_height(25.0)
             .show(ctx, |ui| {
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
                     ui.selectable_value(&mut self.stage, Stage::Main, "Main");
+                    ui.selectable_value(&mut self.stage, Stage::Settings, "Settings");
                     ui.selectable_value(&mut self.stage, Stage::About, "About");
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         let button = ui
@@ -109,7 +111,9 @@ impl eframe::App for App {
                             .on_hover_text("Relaunch ourselves as administrator.")
                             .on_disabled_hover_text("We are already running elevated.");
                         if button.clicked() {
-                            util::win::elevate(&mut self.flags.closing);
+                            util::win::elevate(util::win::ElevationExitMethod::Gentle(
+                                &mut self.flags.closing,
+                            ));
                         }
                     });
                 });
@@ -123,6 +127,7 @@ impl eframe::App for App {
                 self.header(ui, "Network");
                 self.show_network(ctx, ui);
             }
+            Stage::Settings => self.show_settings(ctx, ui),
             Stage::About => self.show_about(ctx, ui),
         });
         if check_debug_keycombo_pressed(ctx) {
@@ -183,7 +188,7 @@ impl App {
             if ui.button("Launch").clicked() {
                 features::launch::launch(&self.launch.selected);
             };
-            egui::ComboBox::from_label("")
+            egui::ComboBox::from_id_salt("")
                 .selected_text(self.launch.selected.to_string())
                 .width(120.0)
                 .show_ui(ui, |ui| {
@@ -261,7 +266,10 @@ impl App {
     fn show_network(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
         egui::Frame::new()
             .inner_margin(egui::vec2(4.0, 4.0))
-            .stroke(egui::Stroke::new(1.0, THEME.overlay1))
+            .stroke(egui::Stroke::new(
+                1.0,
+                self.settings.theme.to_catppuccin().overlay1,
+            ))
             .show(ui, |ui| {
                 let response = ui.add_enabled_ui(self.flags.elevated, |ui| {
                     let label = ui.label("Game's network access");
@@ -312,6 +320,37 @@ impl App {
         });
     }
 
+    fn show_settings(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            ui.label("Theme");
+            egui::ComboBox::from_id_salt("")
+                .selected_text(self.settings.theme.to_string())
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(
+                        &mut self.settings.theme,
+                        settings::Theme::CatppuccinLatte,
+                        settings::Theme::CatppuccinLatte.to_string(),
+                    );
+                    ui.selectable_value(
+                        &mut self.settings.theme,
+                        settings::Theme::CatppuccinFrappe,
+                        settings::Theme::CatppuccinFrappe.to_string(),
+                    );
+                    ui.selectable_value(
+                        &mut self.settings.theme,
+                        settings::Theme::CatppuccinMacchiato,
+                        settings::Theme::CatppuccinMacchiato.to_string(),
+                    );
+                    ui.selectable_value(
+                        &mut self.settings.theme,
+                        settings::Theme::CatppuccinMocha,
+                        settings::Theme::CatppuccinMocha.to_string(),
+                    );
+                });
+        });
+        ui.checkbox(&mut self.settings.start_elevated, "Always start elevated");
+    }
+
     fn show_debug(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
         ui.collapsing("times", |ui| {
             ui.label(format!(
@@ -355,6 +394,7 @@ impl Drop for App {
         // save any persistent state to config file
         let persistent_state = PersistentState {
             launcher: self.launch.selected,
+            settings: self.settings.clone(),
         };
         let config_path = CONFIG_PATH.as_path();
         let config_path_parent = config_path.parent().unwrap();
@@ -394,6 +434,22 @@ fn load_icon() -> egui::IconData {
     }
 }
 
+fn app_creator(
+    _cc: &eframe::CreationContext<'_>,
+) -> Result<Box<dyn eframe::App>, Box<dyn std::error::Error + Send + Sync>> {
+    let mut app = Box::<App>::default();
+    if let Ok(config) = fs::read_to_string(CONFIG_PATH.as_path()) {
+        if let Ok(persistent_state) = serde_json::from_str::<PersistentState>(&config) {
+            app.launch.selected = persistent_state.launcher;
+            app.settings = persistent_state.settings;
+        }
+    }
+    if app.settings.start_elevated && !util::win::is_elevated() {
+        util::win::elevate(util::win::ElevationExitMethod::Forced);
+    }
+    Ok(app)
+}
+
 pub fn run() {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
@@ -404,10 +460,5 @@ pub fn run() {
         centered: true,
         ..Default::default()
     };
-    eframe::run_native(
-        "GTA Tools",
-        options,
-        Box::new(|_cc| Ok(Box::<App>::default())),
-    )
-    .unwrap();
+    eframe::run_native("GTA Tools", options, Box::new(app_creator)).unwrap();
 }

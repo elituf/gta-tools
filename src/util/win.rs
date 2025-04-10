@@ -6,12 +6,16 @@ use windows::{
         UI::{
             Input::KeyboardAndMouse::GetAsyncKeyState,
             Shell::ShellExecuteW,
-            WindowsAndMessaging::SW_HIDE,
-            WindowsAndMessaging::{GetForegroundWindow, GetWindowTextW},
+            WindowsAndMessaging::{GetForegroundWindow, GetWindowTextW, SW_NORMAL},
         },
     },
     core::{HSTRING, PCWSTR},
 };
+
+pub enum ElevationExitMethod<'a> {
+    Gentle(&'a mut bool),
+    Forced,
+}
 
 #[allow(clippy::cast_sign_loss)]
 pub fn is_window_focused(target_title: &str) -> bool {
@@ -29,7 +33,7 @@ pub fn is_any_key_pressed(keys: &[u8]) -> bool {
         .any(|&key| unsafe { (i32::from(GetAsyncKeyState(i32::from(key))) & 0x8000) != 0 })
 }
 
-pub fn elevate(closing: &mut bool) {
+pub fn elevate(closing: ElevationExitMethod) {
     let exe = std::env::current_exe().unwrap();
     unsafe {
         ShellExecuteW(
@@ -38,10 +42,13 @@ pub fn elevate(closing: &mut bool) {
             &HSTRING::from(exe.as_path()),
             PCWSTR::null(),
             PCWSTR::null(),
-            SW_HIDE,
+            SW_NORMAL,
         );
     }
-    *closing = true;
+    match closing {
+        ElevationExitMethod::Gentle(closing) => *closing = true,
+        ElevationExitMethod::Forced => std::process::exit(0),
+    }
 }
 
 pub fn is_elevated() -> bool {
