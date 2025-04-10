@@ -9,7 +9,6 @@ use crate::{
     util::{
         self,
         consts::{ENHANCED, GTA_WINDOW_TITLE, LEGACY},
-        elevation,
     },
 };
 use eframe::egui;
@@ -21,8 +20,6 @@ use std::{
     sync::LazyLock,
     time::{Duration, Instant},
 };
-use sysinfo::System;
-use windows::Win32::Foundation::HANDLE;
 
 const THEME: catppuccin_egui::Theme = catppuccin_egui::MOCHA;
 const WINDOW_SIZE: [f32; 2] = [240.0, 240.0];
@@ -46,16 +43,21 @@ pub enum Stage {
 }
 
 #[allow(clippy::struct_excessive_bools)]
+#[derive(Debug, Default)]
+pub struct Flags {
+    initialized: bool,
+    elevated: bool,
+    debug: bool,
+    closing: bool,
+    current_frame: bool,
+}
+
 #[derive(Debug)]
 pub struct App {
     stage: Stage,
-    closing: bool,
-    debug: bool,
-    initialized: bool,
-    elevated: bool,
-    current_frame: bool,
-    pub sysinfo: System,
-    pub game_handle: HANDLE,
+    flags: Flags,
+    pub sysinfo: sysinfo::System,
+    pub game_handle: windows::Win32::Foundation::HANDLE,
     launch: Launch,
     force_close: ForceClose,
     empty_session: EmptySession,
@@ -66,13 +68,9 @@ impl Default for App {
     fn default() -> Self {
         Self {
             stage: Stage::default(),
-            closing: false,
-            initialized: false,
-            debug: false,
-            elevated: elevation::is_elevated(),
-            current_frame: false,
-            sysinfo: System::new_all(),
-            game_handle: HANDLE::default(),
+            flags: Flags::default(),
+            sysinfo: sysinfo::System::new_all(),
+            game_handle: windows::Win32::Foundation::HANDLE::default(),
             launch: Launch::default(),
             force_close: ForceClose::default(),
             empty_session: EmptySession::default(),
@@ -83,7 +81,7 @@ impl Default for App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        if !self.initialized {
+        if !self.flags.initialized {
             catppuccin_egui::set_theme(ctx, THEME);
             egui_extras::install_image_loaders(ctx);
             if let Ok(config) = fs::read_to_string(CONFIG_PATH.as_path()) {
@@ -95,7 +93,8 @@ impl eframe::App for App {
                 style.spacing.item_spacing = egui::vec2(4.0, 4.0);
                 style.interaction.selectable_labels = false;
             });
-            self.initialized = true;
+            self.flags.elevated = util::win::is_elevated();
+            self.flags.initialized = true;
         }
         self.run_timers();
         egui::TopBottomPanel::bottom("bottom_panel")
@@ -106,11 +105,11 @@ impl eframe::App for App {
                     ui.selectable_value(&mut self.stage, Stage::About, "About");
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         let button = ui
-                            .add_enabled(!self.elevated, egui::Button::new("Elevate"))
+                            .add_enabled(!self.flags.elevated, egui::Button::new("Elevate"))
                             .on_hover_text("Relaunch ourselves as administrator.")
                             .on_disabled_hover_text("We are already running elevated.");
                         if button.clicked() {
-                            elevation::elevate(&mut self.closing);
+                            util::win::elevate(&mut self.flags.closing);
                         }
                     });
                 });
@@ -127,12 +126,12 @@ impl eframe::App for App {
             Stage::About => self.show_about(ctx, ui),
         });
         if check_debug_keycombo_pressed(ctx) {
-            self.debug = !self.debug;
+            self.flags.debug = !self.flags.debug;
         }
         if check_debug_viewport_close_button_pressed(ctx) {
-            self.debug = false;
+            self.flags.debug = false;
         }
-        if self.debug {
+        if self.flags.debug {
             let main_rect = ctx.input(|i| {
                 i.viewport()
                     .clone()
@@ -151,7 +150,7 @@ impl eframe::App for App {
                     .with_icon(load_icon()),
                 |ctx, _class| {
                     if check_debug_keycombo_pressed(ctx) {
-                        self.debug = !self.debug;
+                        self.flags.debug = !self.flags.debug;
                     }
                     egui::CentralPanel::default().show(ctx, |ui| {
                         egui::ScrollArea::both()
@@ -164,7 +163,7 @@ impl eframe::App for App {
             );
         }
         ctx.request_repaint_after(Duration::from_millis(100));
-        if self.closing {
+        if self.flags.closing {
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
         }
     }
@@ -211,20 +210,20 @@ impl App {
         );
         if force_close_button.clicked() && !self.force_close.prompting {
             self.force_close.prompting();
-            self.current_frame = true;
+            self.flags.current_frame = true;
         };
         if self.force_close.prompting
             && self.force_close.interval.elapsed() <= Duration::from_secs(3)
         {
-            if force_close_button.clicked() && !self.current_frame {
+            if force_close_button.clicked() && !self.flags.current_frame {
                 features::force_close::activate(&mut self.sysinfo);
                 self.force_close = ForceClose::default();
             }
         } else {
             self.force_close = ForceClose::default();
         }
-        if self.current_frame {
-            self.current_frame = false;
+        if self.flags.current_frame {
+            self.flags.current_frame = false;
         }
     }
 
@@ -245,7 +244,7 @@ impl App {
             if self.anti_afk.enabled {
                 ui.add_space(8.0);
                 ui.add_enabled_ui(false, |ui| {
-                    ui.label(if util::is_window_focused(GTA_WINDOW_TITLE) {
+                    ui.label(if util::win::is_window_focused(GTA_WINDOW_TITLE) {
                         "GTA is focused."
                     } else {
                         "GTA is not focused!"
@@ -264,7 +263,7 @@ impl App {
             .inner_margin(egui::vec2(4.0, 4.0))
             .stroke(egui::Stroke::new(1.0, THEME.overlay1))
             .show(ui, |ui| {
-                let response = ui.add_enabled_ui(self.elevated, |ui| {
+                let response = ui.add_enabled_ui(self.flags.elevated, |ui| {
                     let label = ui.label("Game's network access");
                     ui.horizontal(|ui| {
                         let available_width = label.rect.width();
@@ -382,11 +381,11 @@ fn check_debug_viewport_close_button_pressed(ctx: &egui::Context) -> bool {
     })
 }
 
-fn load_icon() -> eframe::egui::IconData {
+fn load_icon() -> egui::IconData {
     let icon = include_bytes!("../assets/icon.png");
     let image = image::load_from_memory(icon).unwrap().into_rgba8();
     let (width, height) = image.dimensions();
-    eframe::egui::IconData {
+    egui::IconData {
         rgba: image.into_raw(),
         width,
         height,

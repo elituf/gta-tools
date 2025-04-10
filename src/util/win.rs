@@ -1,10 +1,33 @@
 use windows::{
-    Win32::Foundation::{CloseHandle, HANDLE},
-    Win32::Security::{GetTokenInformation, TOKEN_ELEVATION, TOKEN_QUERY, TokenElevation},
-    Win32::System::Threading::{GetCurrentProcess, OpenProcessToken},
-    Win32::UI::{Shell::ShellExecuteW, WindowsAndMessaging::SW_HIDE},
+    Win32::{
+        Foundation::{CloseHandle, HANDLE},
+        Security::{GetTokenInformation, TOKEN_ELEVATION, TOKEN_QUERY, TokenElevation},
+        System::Threading::{GetCurrentProcess, OpenProcessToken},
+        UI::{
+            Input::KeyboardAndMouse::GetAsyncKeyState,
+            Shell::ShellExecuteW,
+            WindowsAndMessaging::SW_HIDE,
+            WindowsAndMessaging::{GetForegroundWindow, GetWindowTextW},
+        },
+    },
     core::{HSTRING, PCWSTR},
 };
+
+#[allow(clippy::cast_sign_loss)]
+pub fn is_window_focused(target_title: &str) -> bool {
+    unsafe {
+        let hwnd = GetForegroundWindow();
+        let mut buffer: [u16; 512] = [0; 512];
+        let length = GetWindowTextW(hwnd, &mut buffer);
+        let current_title = String::from_utf16_lossy(&buffer[..length as usize]);
+        current_title == target_title
+    }
+}
+
+pub fn is_any_key_pressed(keys: &[u8]) -> bool {
+    keys.iter()
+        .any(|&key| unsafe { (i32::from(GetAsyncKeyState(i32::from(key))) & 0x8000) != 0 })
+}
 
 pub fn elevate(closing: &mut bool) {
     let exe = std::env::current_exe().unwrap();
