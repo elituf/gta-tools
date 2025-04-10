@@ -15,7 +15,7 @@ use crate::{
 use eframe::egui;
 use std::time::{Duration, Instant};
 
-const WINDOW_SIZE: [f32; 2] = [240.0, 240.0];
+const WINDOW_SIZE: [f32; 2] = [240.0, 245.0];
 
 #[derive(Debug, Default, PartialEq, Eq)]
 pub enum Stage {
@@ -97,17 +97,21 @@ impl eframe::App for App {
                     });
                 });
             });
-        egui::CentralPanel::default().show(ctx, |ui| match self.stage {
-            Stage::Main => {
-                self.header(ui, "Game");
-                self.show_game(ctx, ui);
-                self.header(ui, "Session");
-                self.show_session(ctx, ui);
-                self.header(ui, "Network");
-                self.show_network(ctx, ui);
-            }
-            Stage::Settings => self.show_settings(ctx, ui),
-            Stage::About => self.show_about(ctx, ui),
+        egui::CentralPanel::default().show(ctx, |ui| {
+            egui::ScrollArea::vertical()
+                .auto_shrink([false, true])
+                .show(ui, |ui| match self.stage {
+                    Stage::Main => {
+                        self.header(ui, "Game");
+                        self.show_game(ctx, ui);
+                        self.header(ui, "Session");
+                        self.show_session(ctx, ui);
+                        self.header(ui, "Network");
+                        self.show_network(ctx, ui);
+                    }
+                    Stage::Settings => self.show_settings(ctx, ui),
+                    Stage::About => self.show_about(ctx, ui),
+                });
         });
         if check_debug_keycombo_pressed(ctx) {
             self.flags.debug = !self.flags.debug;
@@ -138,7 +142,7 @@ impl eframe::App for App {
                     }
                     egui::CentralPanel::default().show(ctx, |ui| {
                         egui::ScrollArea::both()
-                            .auto_shrink([false, false])
+                            .auto_shrink([false, true])
                             .show(ui, |ui| {
                                 self.show_debug(ctx, ui);
                             });
