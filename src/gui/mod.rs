@@ -28,7 +28,6 @@ pub enum Stage {
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Default)]
 pub struct Flags {
-    initialized: bool,
     elevated: bool,
     debug: bool,
     closing: bool,
@@ -66,15 +65,6 @@ impl Default for App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        if !self.flags.initialized {
-            egui_extras::install_image_loaders(ctx);
-            ctx.style_mut(|style| {
-                style.spacing.item_spacing = egui::vec2(4.0, 4.0);
-                style.interaction.selectable_labels = false;
-            });
-            self.flags.elevated = util::win::is_elevated();
-            self.flags.initialized = true;
-        }
         catppuccin_egui::set_theme(ctx, self.settings.theme.into());
         self.run_timers();
         egui::TopBottomPanel::bottom("bottom_panel")
@@ -161,7 +151,10 @@ impl App {
     #[allow(clippy::unused_self)]
     fn header(&self, ui: &mut egui::Ui, text: &str) {
         ui.horizontal(|ui| {
-            ui.label(text);
+            ui.label(egui::RichText::new(text).font(egui::FontId::new(
+                12.5,
+                egui::FontFamily::Name("Ubuntu-Regular".into()),
+            )));
             ui.add(egui::Separator::default().horizontal());
         });
     }
@@ -382,16 +375,33 @@ fn load_icon() -> egui::IconData {
 }
 
 fn app_creator(
-    _cc: &eframe::CreationContext<'_>,
+    cc: &eframe::CreationContext<'_>,
 ) -> Result<Box<dyn eframe::App>, Box<dyn std::error::Error + Send + Sync>> {
     let mut app = Box::<App>::default();
     if let Some(persistent_state) = PersistentState::get() {
         app.launch.selected = persistent_state.launcher;
         app.settings = persistent_state.settings.clone();
     };
-    if app.settings.start_elevated && !util::win::is_elevated() {
+    let elevated = util::win::is_elevated();
+    if app.settings.start_elevated && !elevated {
         util::win::elevate(util::win::ElevationExitMethod::Forced);
     }
+    app.flags.elevated = elevated;
+    egui_extras::install_image_loaders(&cc.egui_ctx);
+    cc.egui_ctx.style_mut(|style| {
+        style.spacing.item_spacing = egui::vec2(4.0, 4.0);
+        style.interaction.selectable_labels = false;
+    });
+    let mut fonts = egui::FontDefinitions::default();
+    fonts.font_data.insert(
+        "Ubuntu-Regular".to_string(),
+        egui::FontData::from_static(include_bytes!("../../assets/Ubuntu-Regular.ttf")).into(),
+    );
+    fonts.families.insert(
+        egui::FontFamily::Name("Ubuntu-Regular".into()),
+        vec!["Ubuntu-Regular".to_string()],
+    );
+    cc.egui_ctx.set_fonts(fonts);
     Ok(app)
 }
 
