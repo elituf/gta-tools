@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
+use strum::EnumIter;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
 pub enum Theme {
     CatppuccinLatte,
     CatppuccinFrappe,

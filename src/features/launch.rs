@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, path::PathBuf, process::Command};
+use strum::EnumIter;
 use winreg::{RegKey, enums::HKEY_LOCAL_MACHINE};
 
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
 pub enum Platform {
     #[default]
     Steam,

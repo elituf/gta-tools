@@ -3,11 +3,8 @@ mod settings;
 
 use crate::{
     features::{
-        self,
-        anti_afk::AntiAfk,
-        empty_session::EmptySession,
-        force_close::ForceClose,
-        launch::{Launch, Platform},
+        self, anti_afk::AntiAfk, empty_session::EmptySession, force_close::ForceClose,
+        launch::Launch,
     },
     gui::{persistent_state::PersistentState, settings::Settings},
     util::{
@@ -170,26 +167,7 @@ impl App {
             if ui.button("Launch").clicked() {
                 features::launch::launch(&self.launch.selected);
             };
-            egui::ComboBox::from_id_salt("")
-                .selected_text(self.launch.selected.to_string())
-                .width(120.0)
-                .show_ui(ui, |ui| {
-                    ui.selectable_value(
-                        &mut self.launch.selected,
-                        Platform::Steam,
-                        Platform::Steam.to_string(),
-                    );
-                    ui.selectable_value(
-                        &mut self.launch.selected,
-                        Platform::Rockstar,
-                        Platform::Rockstar.to_string(),
-                    );
-                    ui.selectable_value(
-                        &mut self.launch.selected,
-                        Platform::Epic,
-                        Platform::Epic.to_string(),
-                    );
-                });
+            build_combo_box::<features::launch::Platform>(ui, &mut self.launch.selected, "Launch");
         });
         let force_close_button = ui.add_sized(
             [104.0, 0.0],
@@ -305,30 +283,7 @@ impl App {
     fn show_settings(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.label("Theme");
-            egui::ComboBox::from_id_salt("")
-                .selected_text(self.settings.theme.to_string())
-                .show_ui(ui, |ui| {
-                    ui.selectable_value(
-                        &mut self.settings.theme,
-                        settings::Theme::CatppuccinLatte,
-                        settings::Theme::CatppuccinLatte.to_string(),
-                    );
-                    ui.selectable_value(
-                        &mut self.settings.theme,
-                        settings::Theme::CatppuccinFrappe,
-                        settings::Theme::CatppuccinFrappe.to_string(),
-                    );
-                    ui.selectable_value(
-                        &mut self.settings.theme,
-                        settings::Theme::CatppuccinMacchiato,
-                        settings::Theme::CatppuccinMacchiato.to_string(),
-                    );
-                    ui.selectable_value(
-                        &mut self.settings.theme,
-                        settings::Theme::CatppuccinMocha,
-                        settings::Theme::CatppuccinMocha.to_string(),
-                    );
-                });
+            build_combo_box::<settings::Theme>(ui, &mut self.settings.theme, "Theme");
         });
         ui.checkbox(&mut self.settings.start_elevated, "Always start elevated");
     }
@@ -382,6 +337,19 @@ impl Drop for App {
         // make sure we are not suspending game
         features::empty_session::deactivate(self);
     }
+}
+
+fn build_combo_box<E>(ui: &mut egui::Ui, current_value: &mut E, label: impl std::hash::Hash)
+where
+    E: strum::IntoEnumIterator + std::fmt::Display + std::cmp::PartialEq + Copy,
+{
+    egui::ComboBox::from_id_salt(label)
+        .selected_text(current_value.to_string())
+        .show_ui(ui, |ui| {
+            for v in E::iter() {
+                ui.selectable_value(current_value, v, v.to_string());
+            }
+        });
 }
 
 fn check_debug_keycombo_pressed(ctx: &egui::Context) -> bool {
