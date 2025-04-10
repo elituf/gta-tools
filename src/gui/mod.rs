@@ -306,7 +306,9 @@ impl App {
                     ));
                 });
             });
-            ui.add(egui::Image::new(egui::include_image!("../assets/icon.png")));
+            ui.add(egui::Image::new(egui::include_image!(
+                "../../assets/icon.png"
+            )));
         });
     }
 
@@ -382,7 +384,7 @@ fn check_debug_viewport_close_button_pressed(ctx: &egui::Context) -> bool {
 }
 
 fn load_icon() -> egui::IconData {
-    let icon = include_bytes!("../assets/icon.png");
+    let icon = include_bytes!("../../assets/icon.png");
     let image = image::load_from_memory(icon).unwrap().into_rgba8();
     let (width, height) = image.dimensions();
     egui::IconData {
