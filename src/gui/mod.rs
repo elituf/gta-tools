@@ -1,3 +1,4 @@
+mod persistent_state;
 mod settings;
 
 use crate::{
@@ -8,35 +9,16 @@ use crate::{
         force_close::ForceClose,
         launch::{Launch, Platform},
     },
-    gui::settings::Settings,
+    gui::{persistent_state::PersistentState, settings::Settings},
     util::{
         self,
         consts::{ENHANCED, GTA_WINDOW_TITLE, LEGACY},
     },
 };
 use eframe::egui;
-use serde::{Deserialize, Serialize};
-use std::{
-    fs::{self, File},
-    io::Write,
-    path::PathBuf,
-    sync::LazyLock,
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 
 const WINDOW_SIZE: [f32; 2] = [240.0, 240.0];
-static CONFIG_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
-    dirs::config_local_dir()
-        .unwrap()
-        .join("GTA Tools")
-        .join("config.json")
-});
-
-#[derive(Serialize, Deserialize)]
-struct PersistentState {
-    launcher: Platform,
-    settings: Settings,
-}
 
 #[derive(Debug, Default, PartialEq, Eq)]
 pub enum Stage {
@@ -396,14 +378,7 @@ impl Drop for App {
             launcher: self.launch.selected,
             settings: self.settings.clone(),
         };
-        let config_path = CONFIG_PATH.as_path();
-        let config_path_parent = config_path.parent().unwrap();
-        if !config_path_parent.exists() {
-            fs::create_dir(config_path_parent).unwrap();
-        }
-        let mut config_file = File::create(config_path).unwrap();
-        let json = serde_json::to_string_pretty(&persistent_state).unwrap();
-        config_file.write_all(json.as_bytes()).unwrap();
+        persistent_state.set();
         // make sure we are not suspending game
         features::empty_session::deactivate(self);
     }
@@ -438,12 +413,10 @@ fn app_creator(
     _cc: &eframe::CreationContext<'_>,
 ) -> Result<Box<dyn eframe::App>, Box<dyn std::error::Error + Send + Sync>> {
     let mut app = Box::<App>::default();
-    if let Ok(config) = fs::read_to_string(CONFIG_PATH.as_path()) {
-        if let Ok(persistent_state) = serde_json::from_str::<PersistentState>(&config) {
-            app.launch.selected = persistent_state.launcher;
-            app.settings = persistent_state.settings;
-        }
-    }
+    if let Some(persistent_state) = PersistentState::get() {
+        app.launch.selected = persistent_state.launcher;
+        app.settings = persistent_state.settings.clone();
+    };
     if app.settings.start_elevated && !util::win::is_elevated() {
         util::win::elevate(util::win::ElevationExitMethod::Forced);
     }
