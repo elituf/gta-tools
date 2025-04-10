@@ -210,31 +210,33 @@ impl App {
 
     fn show_network(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
         header(ui, "Network");
-        egui::Frame::new().show(ui, |ui| {
-            let response = ui.add_enabled_ui(self.flags.elevated, |ui| {
-                let label = ui.label("Game's network access");
-                ui.horizontal(|ui| {
-                    let available_width = label.rect.width();
-                    let spacing = ui.spacing().item_spacing.x;
-                    let button_width = (available_width - spacing) / 2.0;
-                    if ui
-                        .add_sized([button_width, 18.0], egui::Button::new("Block"))
-                        .clicked()
-                    {
-                        features::game_networking::block_all(&mut self.sysinfo);
-                    };
-                    if ui
-                        .add_sized([button_width, 18.0], egui::Button::new("Unblock"))
-                        .clicked()
-                    {
-                        features::game_networking::unblock_all();
-                    };
+        egui::Frame::new()
+            .outer_margin(egui::vec2(0.0, -2.0))
+            .show(ui, |ui| {
+                let response = ui.add_enabled_ui(self.flags.elevated, |ui| {
+                    let label = ui.label("Game's network access");
+                    ui.horizontal(|ui| {
+                        let available_width = label.rect.width();
+                        let spacing = ui.spacing().item_spacing.x;
+                        let button_width = (available_width - spacing) / 2.0;
+                        if ui
+                            .add_sized([button_width, 18.0], egui::Button::new("Block"))
+                            .clicked()
+                        {
+                            features::game_networking::block_all(&mut self.sysinfo);
+                        };
+                        if ui
+                            .add_sized([button_width, 18.0], egui::Button::new("Unblock"))
+                            .clicked()
+                        {
+                            features::game_networking::unblock_all();
+                        };
+                    });
                 });
+                response.response.on_disabled_hover_text(
+                    "This requires administrator.\nUse the Elevate button.",
+                );
             });
-            response
-                .response
-                .on_disabled_hover_text("This requires administrator.\nUse the Elevate button.");
-        });
     }
 
     #[allow(clippy::unused_self)]
