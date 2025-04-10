@@ -92,11 +92,8 @@ impl eframe::App for App {
                 .auto_shrink([false, true])
                 .show(ui, |ui| match self.stage {
                     Stage::Main => {
-                        self.header(ui, "Game");
                         self.show_game(ctx, ui);
-                        self.header(ui, "Session");
                         self.show_session(ctx, ui);
-                        self.header(ui, "Network");
                         self.show_network(ctx, ui);
                     }
                     Stage::Settings => self.show_settings(ctx, ui),
@@ -148,18 +145,8 @@ impl eframe::App for App {
 }
 
 impl App {
-    #[allow(clippy::unused_self)]
-    fn header(&self, ui: &mut egui::Ui, text: &str) {
-        ui.horizontal(|ui| {
-            ui.label(egui::RichText::new(text).font(egui::FontId::new(
-                12.5,
-                egui::FontFamily::Name("Ubuntu-Regular".into()),
-            )));
-            ui.add(egui::Separator::default().horizontal());
-        });
-    }
-
     fn show_game(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        header(ui, "Game");
         ui.horizontal(|ui| {
             if ui.button("Launch").clicked() {
                 features::launch::launch(&self.launch.selected);
@@ -190,6 +177,7 @@ impl App {
     }
 
     fn show_session(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        header(ui, "Session");
         ui.add_enabled_ui(!self.empty_session.disabled, |ui| {
             ui.horizontal(|ui| {
                 if ui.button("Empty current session").clicked() {
@@ -221,6 +209,7 @@ impl App {
     }
 
     fn show_network(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        header(ui, "Network");
         egui::Frame::new()
             .inner_margin(egui::vec2(4.0, 4.0))
             .stroke(egui::Stroke::new(
@@ -334,6 +323,16 @@ impl Drop for App {
         // make sure we are not suspending game
         features::empty_session::deactivate(self);
     }
+}
+
+fn header(ui: &mut egui::Ui, text: &str) {
+    ui.horizontal(|ui| {
+        ui.label(egui::RichText::new(text).font(egui::FontId::new(
+            12.5,
+            egui::FontFamily::Name("Ubuntu-Regular".into()),
+        )));
+        ui.add(egui::Separator::default().horizontal());
+    });
 }
 
 fn build_combo_box<E>(ui: &mut egui::Ui, current_value: &mut E, label: impl std::hash::Hash)
