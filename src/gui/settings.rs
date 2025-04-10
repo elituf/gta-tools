@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use strum::EnumIter;
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
 pub enum Theme {
     CatppuccinLatte,
@@ -10,9 +11,9 @@ pub enum Theme {
     CatppuccinMocha,
 }
 
-impl Into<catppuccin_egui::Theme> for Theme {
-    fn into(self) -> catppuccin_egui::Theme {
-        match self {
+impl From<Theme> for catppuccin_egui::Theme {
+    fn from(val: Theme) -> Self {
+        match val {
             Theme::CatppuccinLatte => catppuccin_egui::LATTE,
             Theme::CatppuccinFrappe => catppuccin_egui::FRAPPE,
             Theme::CatppuccinMacchiato => catppuccin_egui::MACCHIATO,
@@ -24,18 +25,18 @@ impl Into<catppuccin_egui::Theme> for Theme {
 impl Display for Theme {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let x = match self {
-            Theme::CatppuccinLatte => "Catppuccin Latte",
-            Theme::CatppuccinFrappe => "Catppuccin Frappe",
-            Theme::CatppuccinMacchiato => "Catppuccin Macchiato",
-            Theme::CatppuccinMocha => "Catppuccin Mocha",
+            Self::CatppuccinLatte => "Catppuccin Latte",
+            Self::CatppuccinFrappe => "Catppuccin Frappe",
+            Self::CatppuccinMacchiato => "Catppuccin Macchiato",
+            Self::CatppuccinMocha => "Catppuccin Mocha",
         };
         write!(f, "{x}")
     }
 }
 
 impl Theme {
-    pub fn to_catppuccin(&self) -> catppuccin_egui::Theme {
-        (*self).into()
+    pub fn to_catppuccin(self) -> catppuccin_egui::Theme {
+        self.into()
     }
 }
 

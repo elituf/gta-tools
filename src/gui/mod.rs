@@ -373,13 +373,14 @@ fn load_icon() -> egui::IconData {
     }
 }
 
+#[allow(clippy::unnecessary_wraps)]
 fn app_creator(
     cc: &eframe::CreationContext<'_>,
 ) -> Result<Box<dyn eframe::App>, Box<dyn std::error::Error + Send + Sync>> {
     let mut app = Box::<App>::default();
     if let Some(persistent_state) = PersistentState::get() {
         app.launch.selected = persistent_state.launcher;
-        app.settings = persistent_state.settings.clone();
+        app.settings = persistent_state.settings;
     };
     let elevated = util::win::is_elevated();
     if app.settings.start_elevated && !elevated {

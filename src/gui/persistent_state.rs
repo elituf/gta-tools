@@ -24,7 +24,7 @@ impl PersistentState {
     pub fn get() -> Option<Self> {
         fs::read_to_string(CONFIG_PATH.as_path())
             .ok()
-            .and_then(|config| serde_json::from_str::<PersistentState>(&config).ok())
+            .and_then(|config| serde_json::from_str::<Self>(&config).ok())
     }
 
     pub fn set(&self) {
