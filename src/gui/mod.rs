@@ -9,11 +9,15 @@ use crate::{
     gui::{persistent_state::PersistentState, settings::Settings},
     util::{
         self,
-        consts::{ENHANCED, GTA_WINDOW_TITLE, LEGACY},
+        consts::{APP_STORAGE_PATH, ENHANCED, GTA_WINDOW_TITLE, LEGACY},
     },
 };
 use eframe::egui;
-use std::time::{Duration, Instant};
+use std::{
+    fs,
+    io::Write,
+    time::{Duration, Instant},
+};
 
 const WINDOW_SIZE: [f32; 2] = [240.0, 245.0];
 
@@ -370,10 +374,24 @@ fn load_icon() -> egui::IconData {
     }
 }
 
+fn panic_hook(panic_info: &std::panic::PanicHookInfo<'_>) {
+    let log_path = APP_STORAGE_PATH.join("panic.log");
+    let mut file = fs::File::options()
+        .create(true)
+        .append(true)
+        .open(log_path)
+        .unwrap();
+    let timestamp = chrono::Local::now().to_rfc3339();
+    let backtrace = std::backtrace::Backtrace::force_capture();
+    let message = format!("[{timestamp}]\n{panic_info}\n\n{backtrace}\n\n");
+    file.write_all(message.as_bytes()).unwrap();
+}
+
 #[allow(clippy::unnecessary_wraps)]
 fn app_creator(
     cc: &eframe::CreationContext<'_>,
 ) -> Result<Box<dyn eframe::App>, Box<dyn std::error::Error + Send + Sync>> {
+    std::panic::set_hook(Box::new(panic_hook));
     let mut app = Box::<App>::default();
     if let Some(persistent_state) = PersistentState::get() {
         app.launch.selected = persistent_state.launcher;

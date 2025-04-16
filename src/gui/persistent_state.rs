@@ -1,4 +1,4 @@
-use crate::{features::launch::Platform, gui::settings::Settings};
+use crate::{features::launch::Platform, gui::settings::Settings, util::consts::APP_STORAGE_PATH};
 use serde::{Deserialize, Serialize};
 use std::{
     fs::{self, File},
@@ -7,12 +7,7 @@ use std::{
     sync::LazyLock,
 };
 
-static CONFIG_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
-    dirs::config_local_dir()
-        .unwrap()
-        .join("GTA Tools")
-        .join("config.json")
-});
+static CONFIG_PATH: LazyLock<PathBuf> = LazyLock::new(|| APP_STORAGE_PATH.join("config.json"));
 
 #[derive(Serialize, Deserialize)]
 pub struct PersistentState {
