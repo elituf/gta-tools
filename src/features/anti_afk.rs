@@ -25,10 +25,15 @@ impl Default for AntiAfk {
 }
 
 impl AntiAfk {
+    pub fn can_activate(&self) -> bool {
+        use util::win::*;
+        is_window_focused(GTA_WINDOW_TITLE)
+            && !is_any_key_pressed(&PRESS_KEYS)
+            && !is_cursor_visible()
+    }
+
     pub fn activate(&mut self) {
-        if util::win::is_window_focused(GTA_WINDOW_TITLE)
-            && !util::win::is_any_key_pressed(&PRESS_KEYS)
-        {
+        if self.can_activate() {
             send(&PRESS_KEYS);
         }
         self.interval = Instant::now();

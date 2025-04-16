@@ -271,11 +271,12 @@ impl App {
     }
 
     fn show_debug(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
-        ui.collapsing("times", |ui| {
+        ui.collapsing("anti afk", |ui| {
             ui.label(format!(
-                "anti afk timer: {}",
+                "timer: {}",
                 self.anti_afk.interval.elapsed().as_secs()
-            ))
+            ));
+            ui.label(format!("can activate: {}", self.anti_afk.can_activate()));
         });
         ui.collapsing("sysinfo", |ui| {
             if ui.button("refresh all").clicked() {

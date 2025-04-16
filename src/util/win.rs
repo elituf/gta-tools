@@ -6,7 +6,10 @@ use windows::{
         UI::{
             Input::KeyboardAndMouse::GetAsyncKeyState,
             Shell::ShellExecuteW,
-            WindowsAndMessaging::{GetForegroundWindow, GetWindowTextW, SW_NORMAL},
+            WindowsAndMessaging::{
+                CURSOR_SHOWING, CURSORINFO, GetCursorInfo, GetForegroundWindow, GetWindowTextW,
+                SW_NORMAL,
+            },
         },
     },
     core::{HSTRING, PCWSTR},
@@ -15,6 +18,17 @@ use windows::{
 pub enum ElevationExitMethod<'a> {
     Gentle(&'a mut bool),
     Forced,
+}
+
+pub fn is_cursor_visible() -> bool {
+    let mut ci = CURSORINFO {
+        cbSize: std::mem::size_of::<CURSORINFO>() as u32,
+        ..Default::default()
+    };
+    unsafe {
+        GetCursorInfo(&mut ci).unwrap();
+    }
+    ci.flags == CURSOR_SHOWING
 }
 
 #[allow(clippy::cast_sign_loss)]
