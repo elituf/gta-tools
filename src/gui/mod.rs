@@ -275,6 +275,9 @@ impl App {
     }
 
     fn show_debug(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        if ui.button("open storage path").clicked() {
+            open::that_detached(APP_STORAGE_PATH.as_path()).unwrap();
+        };
         ui.collapsing("anti afk", |ui| {
             ui.label(format!(
                 "timer: {}",
