@@ -267,7 +267,10 @@ impl App {
                         ui.style_mut().spacing.button_padding = egui::Vec2::new(3.0, 0.0);
                         ui.button("⬇")
                             .on_disabled_hover_text("Already up to date.")
-                            .on_hover_text("New version available!")
+                            .on_hover_text(format!(
+                                "New version available! ({})",
+                                self.meta.latest_release.version
+                            ))
                     });
                     if button.inner.clicked() {
                         open::that(&self.meta.latest_release.download_url).unwrap();
