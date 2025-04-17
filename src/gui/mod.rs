@@ -19,7 +19,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-const WINDOW_SIZE: [f32; 2] = [240.0, 245.0];
+const WINDOW_SIZE: [f32; 2] = [240.0, 240.0];
 
 #[derive(Debug, Default, PartialEq, Eq)]
 pub enum Stage {
