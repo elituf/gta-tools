@@ -1,4 +1,10 @@
-use crate::{features, gui::App, util::countdown::Countdown};
+use crate::{
+    gui::App,
+    util::{
+        consts::{ENHANCED, LEGACY},
+        countdown::Countdown,
+    },
+};
 use std::time::{Duration, Instant};
 use sysinfo::System;
 use windows::Win32::{
@@ -7,8 +13,6 @@ use windows::Win32::{
 };
 
 pub const INTERVAL: Duration = Duration::from_secs(10);
-const ENHANCED: &str = "GTA5_Enhanced.exe";
-const LEGACY: &str = "GTA5.exe";
 
 #[derive(Debug)]
 pub struct EmptySession {
@@ -22,7 +26,7 @@ impl Default for EmptySession {
         Self {
             disabled: false,
             interval: Instant::now(),
-            countdown: Countdown::new(features::empty_session::INTERVAL.as_secs()),
+            countdown: Countdown::new(INTERVAL.as_secs()),
         }
     }
 }
