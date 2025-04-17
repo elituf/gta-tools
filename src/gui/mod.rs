@@ -1,16 +1,16 @@
-mod persistent_state;
-mod settings;
+pub mod settings;
 
 use crate::{
     features::{
         self, anti_afk::AntiAfk, empty_session::EmptySession, force_close::ForceClose,
         launch::Launch,
     },
-    gui::{persistent_state::PersistentState, settings::Settings},
+    gui::settings::Settings,
     util::{
         self,
         consts::{APP_STORAGE_PATH, ENHANCED, GTA_WINDOW_TITLE, LEGACY},
         meta::Meta,
+        persistent_state::PersistentState,
     },
 };
 use eframe::egui;
