@@ -33,9 +33,9 @@ pub fn is_cursor_visible() -> bool {
 
 #[allow(clippy::cast_sign_loss)]
 pub fn is_window_focused(target_title: &str) -> bool {
+    let mut buffer: [u16; 512] = [0; 512];
     unsafe {
         let hwnd = GetForegroundWindow();
-        let mut buffer: [u16; 512] = [0; 512];
         let length = GetWindowTextW(hwnd, &mut buffer);
         let current_title = String::from_utf16_lossy(&buffer[..length as usize]);
         current_title == target_title
@@ -66,8 +66,8 @@ pub fn elevate(closing: ElevationExitMethod) {
 }
 
 pub fn is_elevated() -> bool {
+    let mut token: HANDLE = HANDLE::default();
     unsafe {
-        let mut token: HANDLE = HANDLE::default();
         if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token).is_ok() {
             let mut elevation = TOKEN_ELEVATION::default();
             let mut size = u32::try_from(std::mem::size_of::<TOKEN_ELEVATION>()).unwrap();
@@ -83,6 +83,6 @@ pub fn is_elevated() -> bool {
                 return true;
             }
         }
-        false
     }
+    false
 }
