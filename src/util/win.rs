@@ -33,7 +33,7 @@ pub fn is_cursor_visible() -> bool {
 
 #[allow(clippy::cast_sign_loss)]
 pub fn is_window_focused(target_title: &str) -> bool {
-    let mut buffer: [u16; 512] = [0; 512];
+    let mut buffer = [0; 512];
     unsafe {
         let hwnd = GetForegroundWindow();
         let length = GetWindowTextW(hwnd, &mut buffer);
