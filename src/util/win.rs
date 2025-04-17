@@ -44,7 +44,7 @@ pub fn is_window_focused(target_title: &str) -> bool {
 
 pub fn is_any_key_pressed(keys: &[u8]) -> bool {
     keys.iter()
-        .any(|&key| unsafe { (i32::from(GetAsyncKeyState(i32::from(key))) & 0x8000) != 0 })
+        .any(|&key| unsafe { (GetAsyncKeyState(i32::from(key)) & i16::MIN) != 0 })
 }
 
 pub fn elevate(closing: ElevationExitMethod) {
