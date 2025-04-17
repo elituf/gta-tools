@@ -70,14 +70,13 @@ pub fn is_elevated() -> bool {
         let mut token: HANDLE = HANDLE::default();
         if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token).is_ok() {
             let mut elevation = TOKEN_ELEVATION::default();
-            let size = u32::try_from(std::mem::size_of::<TOKEN_ELEVATION>()).unwrap();
-            let mut ret_size = size;
+            let mut size = u32::try_from(std::mem::size_of::<TOKEN_ELEVATION>()).unwrap();
             let result = GetTokenInformation(
                 token,
                 TokenElevation,
                 Some((&raw mut elevation).cast()),
                 size,
-                &mut ret_size,
+                &mut size,
             );
             CloseHandle(token).unwrap();
             if result.is_ok() && elevation.TokenIsElevated != 0 {
