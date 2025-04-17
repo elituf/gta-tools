@@ -41,7 +41,7 @@ fn get_gta_pid(sysinfo: &mut System) -> u32 {
         .find(|(_, p)| p.name() == ENHANCED || p.name() == LEGACY)
     {
         return pid.as_u32();
-    };
+    }
     u32::MAX
 }
 

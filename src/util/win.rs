@@ -22,7 +22,7 @@ pub enum ElevationExitMethod<'a> {
 
 pub fn is_cursor_visible() -> bool {
     let mut ci = CURSORINFO {
-        cbSize: std::mem::size_of::<CURSORINFO>() as u32,
+        cbSize: u32::try_from(std::mem::size_of::<CURSORINFO>()).unwrap(),
         ..Default::default()
     };
     unsafe {

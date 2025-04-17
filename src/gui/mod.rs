@@ -154,7 +154,7 @@ impl App {
         ui.horizontal(|ui| {
             if ui.button("Launch").clicked() {
                 features::launch::launch(&self.launch.selected);
-            };
+            }
             build_combo_box::<features::launch::Platform>(ui, &mut self.launch.selected, "Launch");
         });
         let force_close_button = ui.add_sized(
@@ -164,7 +164,7 @@ impl App {
         if force_close_button.clicked() && !self.force_close.prompting {
             self.force_close.prompting();
             self.flags.current_frame = true;
-        };
+        }
         if self.force_close.prompting
             && self.force_close.interval.elapsed() <= Duration::from_secs(3)
         {
@@ -228,13 +228,13 @@ impl App {
                             .clicked()
                         {
                             features::game_networking::block_all(&mut self.sysinfo);
-                        };
+                        }
                         if ui
                             .add_sized([button_width, 18.0], egui::Button::new("Unblock"))
                             .clicked()
                         {
                             features::game_networking::unblock_all();
-                        };
+                        }
                     });
                 });
                 response.response.on_disabled_hover_text(
@@ -277,13 +277,16 @@ impl App {
     fn show_debug(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
         if ui.button("open storage path").clicked() {
             open::that_detached(APP_STORAGE_PATH.as_path()).unwrap();
-        };
+        }
         ui.collapsing("anti afk", |ui| {
             ui.label(format!(
                 "timer: {}",
                 self.anti_afk.interval.elapsed().as_secs()
             ));
-            ui.label(format!("can activate: {}", self.anti_afk.can_activate()));
+            ui.label(format!(
+                "can activate: {}",
+                features::anti_afk::can_activate()
+            ));
         });
         ui.collapsing("sysinfo", |ui| {
             if ui.button("refresh all").clicked() {
@@ -399,7 +402,7 @@ fn app_creator(
     if let Some(persistent_state) = PersistentState::get() {
         app.launch.selected = persistent_state.launcher;
         app.settings = persistent_state.settings;
-    };
+    }
     let elevated = util::win::is_elevated();
     if app.settings.start_elevated && !elevated {
         util::win::elevate(util::win::ElevationExitMethod::Forced);

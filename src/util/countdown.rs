@@ -36,6 +36,6 @@ impl Countdown {
         self.i_string = self.i.to_string();
         if self.i == 0 {
             self.reset();
-        };
+        }
     }
 }
