@@ -68,7 +68,7 @@ pub fn elevate(closing: ElevationExitMethod) {
 pub fn is_elevated() -> bool {
     let mut token: HANDLE = HANDLE::default();
     unsafe {
-        if !OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token).is_ok() {
+        if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token).is_err() {
             return false;
         }
         let mut elevation = TOKEN_ELEVATION::default();
