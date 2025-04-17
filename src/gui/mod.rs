@@ -10,6 +10,7 @@ use crate::{
     util::{
         self,
         consts::{APP_STORAGE_PATH, ENHANCED, GTA_WINDOW_TITLE, LEGACY},
+        meta::Meta,
     },
 };
 use eframe::egui;
@@ -40,6 +41,7 @@ pub struct Flags {
 
 #[derive(Debug)]
 pub struct App {
+    meta: Meta,
     settings: Settings,
     stage: Stage,
     flags: Flags,
@@ -54,6 +56,7 @@ pub struct App {
 impl Default for App {
     fn default() -> Self {
         Self {
+            meta: Meta::default(),
             settings: Settings::default(),
             stage: Stage::default(),
             flags: Flags::default(),
@@ -243,21 +246,31 @@ impl App {
             });
     }
 
-    #[allow(clippy::unused_self)]
     fn show_about(&self, _ctx: &egui::Context, ui: &mut egui::Ui) {
         ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
             ui.horizontal(|ui| {
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = 0.0;
-                    ui.label("with love from ");
+                    ui.label("with ");
+                    ui.hyperlink_to("❤", "https://codeberg.org/futile/gta-tools");
+                    ui.label(" from ");
                     ui.hyperlink_to("futile", "http://futile.eu");
                 });
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(format!(
                         "v{} {}",
-                        env!("CARGO_PKG_VERSION"),
+                        self.meta.current_version,
                         if cfg!(debug_assertions) { "(dev)" } else { "" }
                     ));
+                    let button = ui.add_enabled_ui(self.meta.newer_version_available, |ui| {
+                        ui.style_mut().spacing.button_padding = egui::Vec2::new(3.0, 0.0);
+                        ui.button("⬇")
+                            .on_disabled_hover_text("Already up to date.")
+                            .on_hover_text("New version available!")
+                    });
+                    if button.inner.clicked() {
+                        open::that(&self.meta.latest_release.download_url).unwrap();
+                    }
                 });
             });
             ui.add(egui::Image::new(egui::include_image!(
