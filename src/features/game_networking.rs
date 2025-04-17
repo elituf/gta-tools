@@ -24,7 +24,7 @@ pub fn block_all(sysinfo: &mut System) {
     let Some(exe_path) = get_game_exe_path(sysinfo) else {
         return;
     };
-    let exe_path = exe_path.display().to_string();
+    let exe_path = exe_path.display();
     Command::new("netsh")
         .args([
             "advfirewall",

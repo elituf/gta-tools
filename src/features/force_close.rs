@@ -12,7 +12,7 @@ pub struct ForceClose {
 impl Default for ForceClose {
     fn default() -> Self {
         Self {
-            button_text: "Force close game".to_string(),
+            button_text: "Force close game".to_owned(),
             prompting: false,
             interval: Instant::now(),
         }
@@ -21,7 +21,7 @@ impl Default for ForceClose {
 
 impl ForceClose {
     pub fn prompting(&mut self) {
-        self.button_text = "Are you sure?".to_string();
+        self.button_text = "Are you sure?".to_owned();
         self.prompting = true;
         self.interval = Instant::now();
     }

@@ -43,12 +43,12 @@ fn app_creator(
     });
     let mut fonts = egui::FontDefinitions::default();
     fonts.font_data.insert(
-        "Ubuntu-Regular".to_string(),
+        "Ubuntu-Regular".to_owned(),
         egui::FontData::from_static(include_bytes!("../../assets/Ubuntu-Regular.ttf")).into(),
     );
     fonts.families.insert(
         egui::FontFamily::Name("Ubuntu-Regular".into()),
-        vec!["Ubuntu-Regular".to_string()],
+        vec!["Ubuntu-Regular".to_owned()],
     );
     cc.egui_ctx.set_fonts(fonts);
     Ok(app)

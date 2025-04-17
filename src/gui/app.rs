@@ -315,7 +315,7 @@ impl App {
                 .iter()
                 .find(|(_, p)| p.name() == ENHANCED || p.name() == LEGACY)
                 .map_or_else(
-                    || "no pid found!".to_string(),
+                    || "no pid found!".to_owned(),
                     |(pid, _)| pid.as_u32().to_string(),
                 );
             ui.label(format!("gta pid: {pid}"));
