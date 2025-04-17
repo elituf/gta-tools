@@ -1,6 +1,7 @@
 use semver::Version;
 
 const APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
+const CODEBERG_ENDPOINT_ROOT: &str = "https://codeberg.org/api/v1";
 
 #[derive(Debug)]
 pub struct Release {
@@ -18,31 +19,17 @@ impl Default for Release {
 }
 
 pub fn get_latest_release() -> Option<Release> {
-    let request_url = "https://codeberg.org/api/v1/repos/futile/gta-tools/releases/latest";
-    let ureq_config = ureq::Agent::config_builder()
+    let request_url = format!("{CODEBERG_ENDPOINT_ROOT}/repos/futile/gta-tools/releases/latest");
+    let ureq: ureq::Agent = ureq::Agent::config_builder()
         .user_agent(APP_USER_AGENT)
-        .build();
-    let ureq = ureq::Agent::new_with_config(ureq_config);
-    let Ok(mut response) = ureq.get(request_url).call() else {
-        return None;
-    };
-    let Ok(json) = response.body_mut().read_json::<serde_json::Value>() else {
-        return None;
-    };
-    let version: Version;
-    if let Some(tag_name) = &json["tag_name"].as_str() {
-        version = Version::parse(tag_name).unwrap();
-    } else {
-        return None;
-    }
-    let download_url: String;
-    if let Some(browser_download_url) = &json["assets"][0]["browser_download_url"].as_str() {
-        download_url = String::from(*browser_download_url);
-    } else {
-        return None;
-    }
+        .build()
+        .into();
+    let mut response = ureq.get(request_url).call().ok()?;
+    let json = response.body_mut().read_json::<serde_json::Value>().ok()?;
+    let tag_name = json["tag_name"].as_str()?;
+    let browser_download_url = json["assets"][0]["browser_download_url"].as_str()?;
     Some(Release {
-        version,
-        download_url,
+        version: Version::parse(tag_name).expect("expected a valid semver pattern"),
+        download_url: String::from(browser_download_url),
     })
 }
