@@ -1,0 +1,347 @@
+use crate::{
+    features::{
+        self, anti_afk::AntiAfk, empty_session::EmptySession, force_close::ForceClose,
+        launch::Launch,
+    },
+    gui::{
+        settings::{self, Settings},
+        tools,
+    },
+    util::{
+        self,
+        consts::{APP_STORAGE_PATH, ENHANCED, GTA_WINDOW_TITLE, LEGACY},
+        meta::Meta,
+        persistent_state::PersistentState,
+    },
+};
+use eframe::egui;
+use std::time::{Duration, Instant};
+
+pub const WINDOW_SIZE: [f32; 2] = [240.0, 240.0];
+
+#[derive(Debug, Default, PartialEq, Eq)]
+pub enum Stage {
+    #[default]
+    Main,
+    Settings,
+    About,
+}
+
+#[allow(clippy::struct_excessive_bools)]
+#[derive(Debug, Default)]
+pub struct Flags {
+    pub elevated: bool,
+    debug: bool,
+    closing: bool,
+    current_frame: bool,
+}
+
+#[derive(Debug)]
+pub struct App {
+    meta: Meta,
+    pub settings: Settings,
+    stage: Stage,
+    pub flags: Flags,
+    pub sysinfo: sysinfo::System,
+    pub game_handle: windows::Win32::Foundation::HANDLE,
+    pub launch: Launch,
+    force_close: ForceClose,
+    empty_session: EmptySession,
+    anti_afk: AntiAfk,
+}
+
+impl Default for App {
+    fn default() -> Self {
+        Self {
+            meta: Meta::default(),
+            settings: Settings::default(),
+            stage: Stage::default(),
+            flags: Flags::default(),
+            sysinfo: sysinfo::System::new_all(),
+            game_handle: windows::Win32::Foundation::HANDLE::default(),
+            launch: Launch::default(),
+            force_close: ForceClose::default(),
+            empty_session: EmptySession::default(),
+            anti_afk: AntiAfk::default(),
+        }
+    }
+}
+
+impl eframe::App for App {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        catppuccin_egui::set_theme(ctx, self.settings.theme.into());
+        self.run_timers();
+        egui::TopBottomPanel::bottom("bottom_panel")
+            .exact_height(25.0)
+            .show(ctx, |ui| {
+                ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                    ui.selectable_value(&mut self.stage, Stage::Main, "Main");
+                    ui.selectable_value(&mut self.stage, Stage::Settings, "Settings");
+                    ui.selectable_value(&mut self.stage, Stage::About, "About");
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        let button = ui
+                            .add_enabled(!self.flags.elevated, egui::Button::new("Elevate"))
+                            .on_hover_text("Relaunch ourselves as administrator.")
+                            .on_disabled_hover_text("We are already running elevated.");
+                        if button.clicked() {
+                            util::win::elevate(util::win::ElevationExitMethod::Gentle(
+                                &mut self.flags.closing,
+                            ));
+                        }
+                    });
+                });
+            });
+        egui::CentralPanel::default().show(ctx, |ui| {
+            egui::ScrollArea::vertical()
+                .auto_shrink([false, true])
+                .show(ui, |ui| match self.stage {
+                    Stage::Main => {
+                        self.show_game(ctx, ui);
+                        self.show_session(ctx, ui);
+                        self.show_network(ctx, ui);
+                    }
+                    Stage::Settings => self.show_settings(ctx, ui),
+                    Stage::About => self.show_about(ctx, ui),
+                });
+        });
+        if tools::check_debug_keycombo_pressed(ctx) {
+            self.flags.debug = !self.flags.debug;
+        }
+        if tools::check_debug_viewport_close_button_pressed(ctx) {
+            self.flags.debug = false;
+        }
+        if self.flags.debug {
+            let main_rect = ctx.input(|i| {
+                i.viewport()
+                    .clone()
+                    .outer_rect
+                    .unwrap_or(egui::Rect::EVERYTHING)
+            });
+            let position = [main_rect.right(), main_rect.min.y];
+            ctx.show_viewport_immediate(
+                egui::ViewportId::from_hash_of("debug_viewport"),
+                egui::ViewportBuilder::default()
+                    .with_title("GTA Tools Debug")
+                    .with_minimize_button(false)
+                    .with_maximize_button(false)
+                    .with_inner_size(WINDOW_SIZE)
+                    .with_position(position)
+                    .with_icon(tools::load_icon()),
+                |ctx, _class| {
+                    if tools::check_debug_keycombo_pressed(ctx) {
+                        self.flags.debug = !self.flags.debug;
+                    }
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        egui::ScrollArea::both()
+                            .auto_shrink([false, true])
+                            .show(ui, |ui| {
+                                self.show_debug(ctx, ui);
+                            });
+                    });
+                },
+            );
+        }
+        ctx.request_repaint_after(Duration::from_millis(100));
+        if self.flags.closing {
+            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+        }
+    }
+}
+
+impl App {
+    fn show_game(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        tools::header(ui, "Game");
+        ui.horizontal(|ui| {
+            if ui.button("Launch").clicked() {
+                features::launch::launch(&self.launch.selected);
+            }
+            tools::build_combo_box::<features::launch::Platform>(
+                ui,
+                &mut self.launch.selected,
+                "Launch",
+            );
+        });
+        let force_close_button = ui.add_sized(
+            [104.0, 0.0],
+            egui::Button::new(&self.force_close.button_text),
+        );
+        if force_close_button.clicked() && !self.force_close.prompting {
+            self.force_close.prompting();
+            self.flags.current_frame = true;
+        }
+        if self.force_close.prompting
+            && self.force_close.interval.elapsed() <= Duration::from_secs(3)
+        {
+            if force_close_button.clicked() && !self.flags.current_frame {
+                features::force_close::activate(&mut self.sysinfo);
+                self.force_close = ForceClose::default();
+            }
+        } else {
+            self.force_close = ForceClose::default();
+        }
+        if self.flags.current_frame {
+            self.flags.current_frame = false;
+        }
+    }
+
+    fn show_session(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        tools::header(ui, "Session");
+        ui.add_enabled_ui(!self.empty_session.disabled, |ui| {
+            ui.horizontal(|ui| {
+                if ui.button("Empty current session").clicked() {
+                    self.empty_session.interval = Instant::now();
+                    self.empty_session.disabled = true;
+                    features::empty_session::activate(&mut self.game_handle, &mut self.sysinfo);
+                }
+                ui.label(&self.empty_session.countdown.i_string);
+            });
+        });
+        ui.horizontal(|ui| {
+            ui.checkbox(&mut self.anti_afk.enabled, "Anti AFK")
+                .on_hover_text("You should be tabbed in\nfor this to work.");
+            if self.anti_afk.enabled {
+                ui.add_space(8.0);
+                ui.add_enabled_ui(false, |ui| {
+                    ui.label(if util::win::is_window_focused(GTA_WINDOW_TITLE) {
+                        "GTA is focused."
+                    } else {
+                        "GTA is not focused!"
+                    })
+                });
+            }
+        });
+        if self.anti_afk.enabled && self.anti_afk.interval.elapsed() >= features::anti_afk::INTERVAL
+        {
+            self.anti_afk.activate();
+        }
+    }
+
+    fn show_network(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        tools::header(ui, "Network");
+        egui::Frame::new()
+            .outer_margin(egui::vec2(0.0, -2.0))
+            .show(ui, |ui| {
+                let response = ui.add_enabled_ui(self.flags.elevated, |ui| {
+                    let label = ui.label("Game's network access");
+                    ui.horizontal(|ui| {
+                        let available_width = label.rect.width();
+                        let spacing = ui.spacing().item_spacing.x;
+                        let button_width = (available_width - spacing) / 2.0;
+                        if ui
+                            .add_sized([button_width, 18.0], egui::Button::new("Block"))
+                            .clicked()
+                        {
+                            features::game_networking::block_all(&mut self.sysinfo);
+                        }
+                        if ui
+                            .add_sized([button_width, 18.0], egui::Button::new("Unblock"))
+                            .clicked()
+                        {
+                            features::game_networking::unblock_all();
+                        }
+                    });
+                });
+                response.response.on_disabled_hover_text(
+                    "This requires administrator.\nUse the Elevate button.",
+                );
+            });
+    }
+
+    fn show_about(&self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
+            ui.horizontal(|ui| {
+                ui.horizontal(|ui| {
+                    ui.spacing_mut().item_spacing.x = 0.0;
+                    ui.label("with ");
+                    ui.hyperlink_to("❤", "https://codeberg.org/futile/gta-tools");
+                    ui.label(" from ");
+                    ui.hyperlink_to("futile", "http://futile.eu");
+                });
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.label(format!(
+                        "v{} {}",
+                        self.meta.current_version,
+                        if cfg!(debug_assertions) { "(dev)" } else { "" }
+                    ));
+                    let button = ui.add_enabled_ui(self.meta.newer_version_available, |ui| {
+                        ui.style_mut().spacing.button_padding = egui::Vec2::new(3.0, 0.0);
+                        ui.button("⬇")
+                            .on_disabled_hover_text("Already up to date.")
+                            .on_hover_text("New version available!")
+                    });
+                    if button.inner.clicked() {
+                        open::that(&self.meta.latest_release.download_url).unwrap();
+                    }
+                });
+            });
+            ui.add(egui::Image::new(egui::include_image!(
+                "../../assets/icon.png"
+            )));
+        });
+    }
+
+    fn show_settings(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            ui.label("Theme");
+            tools::build_combo_box::<settings::Theme>(ui, &mut self.settings.theme, "Theme");
+        });
+        ui.checkbox(&mut self.settings.start_elevated, "Always start elevated");
+    }
+
+    fn show_debug(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        if ui.button("open storage path").clicked() {
+            open::that_detached(APP_STORAGE_PATH.as_path()).unwrap();
+        }
+        ui.collapsing("anti afk", |ui| {
+            ui.label(format!(
+                "timer: {}",
+                self.anti_afk.interval.elapsed().as_secs()
+            ));
+            ui.label(format!(
+                "can activate: {}",
+                features::anti_afk::can_activate()
+            ));
+        });
+        ui.collapsing("sysinfo", |ui| {
+            if ui.button("refresh all").clicked() {
+                self.sysinfo.refresh_all();
+            }
+            let pid = self
+                .sysinfo
+                .processes()
+                .iter()
+                .find(|(_, p)| p.name() == ENHANCED || p.name() == LEGACY)
+                .map_or_else(
+                    || "no pid found!".to_string(),
+                    |(pid, _)| pid.as_u32().to_string(),
+                );
+            ui.label(format!("gta pid: {pid}"));
+        });
+        ui.collapsing("app state", |ui| ui.label(format!("{self:#?}")));
+    }
+
+    fn run_timers(&mut self) {
+        if self.empty_session.disabled {
+            self.empty_session.countdown.count();
+        } else {
+            self.empty_session.countdown.reset();
+        }
+        if self.empty_session.interval.elapsed() >= features::empty_session::INTERVAL {
+            features::empty_session::deactivate(&mut self.game_handle);
+            self.empty_session.disabled = false;
+        }
+    }
+}
+
+impl Drop for App {
+    fn drop(&mut self) {
+        // save any persistent state to config file
+        let persistent_state = PersistentState {
+            launcher: self.launch.selected,
+            settings: self.settings.clone(),
+        };
+        persistent_state.set();
+        // make sure we are not suspending game
+        features::empty_session::deactivate(&mut self.game_handle);
+    }
+}

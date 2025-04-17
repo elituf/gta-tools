@@ -1,9 +1,6 @@
-use crate::{
-    gui::App,
-    util::{
-        consts::{ENHANCED, LEGACY},
-        countdown::Countdown,
-    },
+use crate::util::{
+    consts::{ENHANCED, LEGACY},
+    countdown::Countdown,
 };
 use std::time::{Duration, Instant};
 use sysinfo::System;
@@ -49,22 +46,22 @@ fn get_gta_pid(sysinfo: &mut System) -> u32 {
     u32::MAX
 }
 
-pub fn activate(app: &mut App) {
-    let pid = get_gta_pid(&mut app.sysinfo);
+pub fn activate(handle: &mut HANDLE, sysinfo: &mut System) {
+    let pid = get_gta_pid(sysinfo);
     if pid == u32::MAX {
         return;
     }
     unsafe {
-        app.game_handle = OpenProcess(PROCESS_SUSPEND_RESUME, false, pid).unwrap();
-        let _ = NtSuspendProcess(app.game_handle);
+        *handle = OpenProcess(PROCESS_SUSPEND_RESUME, false, pid).unwrap();
+        let _ = NtSuspendProcess(*handle);
     }
 }
 
-pub fn deactivate(app: &mut App) {
+pub fn deactivate(handle: &mut HANDLE) {
     unsafe {
-        if !app.game_handle.is_invalid() {
-            let _ = NtResumeProcess(app.game_handle);
-            let _ = CloseHandle(app.game_handle);
+        if !handle.is_invalid() {
+            let _ = NtResumeProcess(*handle);
+            let _ = CloseHandle(*handle);
         }
     }
 }

@@ -5,5 +5,5 @@ mod gui;
 mod util;
 
 fn main() {
-    gui::run();
+    gui::run::run();
 }
