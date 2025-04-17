@@ -68,21 +68,19 @@ pub fn elevate(closing: ElevationExitMethod) {
 pub fn is_elevated() -> bool {
     let mut token: HANDLE = HANDLE::default();
     unsafe {
-        if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token).is_ok() {
-            let mut elevation = TOKEN_ELEVATION::default();
-            let mut size = u32::try_from(std::mem::size_of::<TOKEN_ELEVATION>()).unwrap();
-            let result = GetTokenInformation(
-                token,
-                TokenElevation,
-                Some((&raw mut elevation).cast()),
-                size,
-                &mut size,
-            );
-            CloseHandle(token).unwrap();
-            if result.is_ok() && elevation.TokenIsElevated != 0 {
-                return true;
-            }
+        if !OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token).is_ok() {
+            return false;
         }
+        let mut elevation = TOKEN_ELEVATION::default();
+        let mut size = u32::try_from(std::mem::size_of::<TOKEN_ELEVATION>()).unwrap();
+        let result = GetTokenInformation(
+            token,
+            TokenElevation,
+            Some((&raw mut elevation).cast()),
+            size,
+            &mut size,
+        );
+        CloseHandle(token).unwrap();
+        result.is_ok() && elevation.TokenIsElevated != 0
     }
-    false
 }
