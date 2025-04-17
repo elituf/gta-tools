@@ -362,9 +362,9 @@ where
     egui::ComboBox::from_id_salt(label)
         .selected_text(current_value.to_string())
         .show_ui(ui, |ui| {
-            for v in E::iter() {
+            E::iter().for_each(|v| {
                 ui.selectable_value(current_value, v, v.to_string());
-            }
+            });
         });
 }
 
