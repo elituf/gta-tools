@@ -1,4 +1,4 @@
-use crate::util::consts::{ENHANCED, LEGACY};
+use crate::util::consts::game::{EXE_ENHANCED, EXE_LEGACY};
 use std::time::Instant;
 use sysinfo::System;
 
@@ -32,7 +32,7 @@ pub fn activate(sysinfo: &mut System) {
     sysinfo
         .processes()
         .iter()
-        .filter(|(_, p)| p.name() == ENHANCED || p.name() == LEGACY)
+        .filter(|(_, p)| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
         .for_each(|(_, p)| {
             p.kill();
         });

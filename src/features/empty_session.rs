@@ -1,5 +1,5 @@
 use crate::util::{
-    consts::{ENHANCED, LEGACY},
+    consts::game::{EXE_ENHANCED, EXE_LEGACY},
     countdown::Countdown,
 };
 use std::time::{Duration, Instant};
@@ -39,7 +39,7 @@ fn get_gta_pid(sysinfo: &mut System) -> u32 {
     if let Some((pid, _)) = sysinfo
         .processes()
         .iter()
-        .find(|(_, p)| p.name() == ENHANCED || p.name() == LEGACY)
+        .find(|(_, p)| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
     {
         return pid.as_u32();
     }

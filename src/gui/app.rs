@@ -9,7 +9,10 @@ use crate::{
     },
     util::{
         self,
-        consts::{APP_STORAGE_PATH, ENHANCED, GTA_WINDOW_TITLE, LEGACY},
+        consts::{
+            APP_STORAGE_PATH,
+            game::{EXE_ENHANCED, EXE_LEGACY, WINDOW_TITLE},
+        },
         meta::Meta,
         persistent_state::PersistentState,
     },
@@ -202,7 +205,7 @@ impl App {
             if self.anti_afk.enabled {
                 ui.add_space(8.0);
                 ui.add_enabled_ui(false, |ui| {
-                    ui.label(if util::win::is_window_focused(GTA_WINDOW_TITLE) {
+                    ui.label(if util::win::is_window_focused(WINDOW_TITLE) {
                         "GTA is focused."
                     } else {
                         "GTA is not focused!"
@@ -313,7 +316,7 @@ impl App {
                 .sysinfo
                 .processes()
                 .iter()
-                .find(|(_, p)| p.name() == ENHANCED || p.name() == LEGACY)
+                .find(|(_, p)| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
                 .map_or_else(
                     || "no pid found!".to_owned(),
                     |(pid, _)| pid.as_u32().to_string(),

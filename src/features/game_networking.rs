@@ -1,6 +1,6 @@
 #![allow(clippy::zombie_processes)]
 
-use crate::util::consts::{ENHANCED, LEGACY};
+use crate::util::consts::game::{EXE_ENHANCED, EXE_LEGACY};
 use std::{os::windows::process::CommandExt, path::Path, process::Command};
 use sysinfo::System;
 use windows::Win32::System::Threading::CREATE_NO_WINDOW;
@@ -12,7 +12,7 @@ fn get_game_exe_path(sysinfo: &mut System) -> Option<&Path> {
     if let Some((_, process)) = sysinfo
         .processes()
         .iter()
-        .find(|(_, p)| p.name() == ENHANCED || p.name() == LEGACY)
+        .find(|(_, p)| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
     {
         process.exe()
     } else {

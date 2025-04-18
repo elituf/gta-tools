@@ -1,6 +1,6 @@
 #![allow(clippy::cast_possible_truncation)]
 
-use crate::util::{self, consts::GTA_WINDOW_TITLE};
+use crate::util::{self, consts::game::WINDOW_TITLE};
 use std::time::{Duration, Instant};
 use windows::Win32::UI::Input::KeyboardAndMouse::{
     KEYBD_EVENT_FLAGS, MAP_VIRTUAL_KEY_TYPE, MapVirtualKeyW, VK_NUMPAD4, VK_NUMPAD6, keybd_event,
@@ -35,7 +35,7 @@ impl AntiAfk {
 
 pub fn can_activate() -> bool {
     use util::win::{is_any_key_pressed, is_cursor_visible, is_window_focused};
-    is_window_focused(GTA_WINDOW_TITLE) && !is_any_key_pressed(&PRESS_KEYS) && !is_cursor_visible()
+    is_window_focused(WINDOW_TITLE) && !is_any_key_pressed(&PRESS_KEYS) && !is_cursor_visible()
 }
 
 pub fn send(vk_codes: &[u8]) {
