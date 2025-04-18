@@ -6,18 +6,18 @@ use crate::{
     util::{self, consts::APP_STORAGE_PATH, persistent_state::PersistentState},
 };
 use eframe::egui;
-use std::{fs, io::Write};
+use std::{fs::File, io::Write};
 
 fn panic_hook(panic_info: &std::panic::PanicHookInfo<'_>) {
     let log_path = APP_STORAGE_PATH.join("panic.log");
-    let mut file = fs::File::options()
+    let mut file = File::options()
         .create(true)
         .append(true)
         .open(log_path)
         .unwrap();
-    let timestamp = chrono::Local::now().to_rfc3339();
+    let timestamp = chrono::Local::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, false);
     let backtrace = std::backtrace::Backtrace::force_capture();
-    let message = format!("[{timestamp}]\n{panic_info}\n\n{backtrace}\n\n");
+    let message = format!("[{timestamp}]\n{panic_info}\nstack backtrace:\n{backtrace}\n");
     file.write_all(message.as_bytes()).unwrap();
 }
 
