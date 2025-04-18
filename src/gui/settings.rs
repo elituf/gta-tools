@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use strum::EnumIter;
 
-#[allow(clippy::enum_variant_names)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
 pub enum Theme {
     CatppuccinLatte,

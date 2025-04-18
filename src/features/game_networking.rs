@@ -1,5 +1,3 @@
-#![allow(clippy::zombie_processes)]
-
 use crate::util::consts::game::{EXE_ENHANCED, EXE_LEGACY};
 use std::{os::windows::process::CommandExt, path::Path, process::Command};
 use sysinfo::System;

@@ -21,7 +21,6 @@ fn panic_hook(panic_info: &std::panic::PanicHookInfo<'_>) {
     file.write_all(message.as_bytes()).unwrap();
 }
 
-#[allow(clippy::unnecessary_wraps)]
 fn app_creator(
     cc: &eframe::CreationContext<'_>,
 ) -> Result<Box<dyn eframe::App>, Box<dyn std::error::Error + Send + Sync>> {

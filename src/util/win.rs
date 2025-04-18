@@ -31,7 +31,6 @@ pub fn is_cursor_visible() -> bool {
     ci.flags == CURSOR_SHOWING
 }
 
-#[allow(clippy::cast_sign_loss)]
 pub fn is_window_focused(target_title: &str) -> bool {
     let mut buffer = [0; 512];
     unsafe {

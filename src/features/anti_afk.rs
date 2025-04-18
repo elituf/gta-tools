@@ -1,5 +1,3 @@
-#![allow(clippy::cast_possible_truncation)]
-
 use crate::util::{self, consts::game::WINDOW_TITLE};
 use std::time::{Duration, Instant};
 use windows::Win32::UI::Input::KeyboardAndMouse::{

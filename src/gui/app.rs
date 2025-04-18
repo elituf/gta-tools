@@ -30,7 +30,6 @@ pub enum Stage {
     About,
 }
 
-#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Default)]
 pub struct Flags {
     pub elevated: bool,
