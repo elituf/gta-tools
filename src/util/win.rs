@@ -4,7 +4,7 @@ use windows::{
         Security::{GetTokenInformation, TOKEN_ELEVATION, TOKEN_QUERY, TokenElevation},
         System::Threading::{GetCurrentProcess, OpenProcessToken},
         UI::{
-            Input::KeyboardAndMouse::GetAsyncKeyState,
+            Input::KeyboardAndMouse::{GetAsyncKeyState, VIRTUAL_KEY},
             Shell::ShellExecuteW,
             WindowsAndMessaging::{
                 CURSOR_SHOWING, CURSORINFO, GetCursorInfo, GetForegroundWindow, GetWindowTextW,
@@ -41,9 +41,9 @@ pub fn is_window_focused(target_title: &str) -> bool {
     }
 }
 
-pub fn is_any_key_pressed(keys: &[u8]) -> bool {
+pub fn is_any_key_pressed(keys: &[VIRTUAL_KEY]) -> bool {
     keys.iter()
-        .any(|&key| unsafe { (GetAsyncKeyState(i32::from(key)) & i16::MIN) != 0 })
+        .any(|&key| unsafe { (GetAsyncKeyState(i32::from(key.0)) & i16::MIN) != 0 })
 }
 
 pub fn elevate(closing: ElevationExitMethod) {
