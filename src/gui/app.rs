@@ -297,6 +297,13 @@ impl App {
         if ui.button("open storage path").clicked() {
             open::that_detached(APP_STORAGE_PATH.as_path()).unwrap();
         }
+        ui.collapsing("version", |ui| {
+            ui.checkbox(
+                &mut self.meta.newer_version_available,
+                "spoof new version available",
+            )
+            .on_hover_text("(this could already be checked if\nthere actually IS a new version)");
+        });
         ui.collapsing("anti afk", |ui| {
             ui.label(format!(
                 "timer: {}",
