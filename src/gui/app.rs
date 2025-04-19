@@ -1,7 +1,7 @@
 use crate::{
     features,
     gui::{settings::Settings, tools},
-    util::{self, consts::game::WINDOW_TITLE, meta::Meta, persistent_state::PersistentState},
+    util::{consts::game::WINDOW_TITLE, meta::Meta, persistent_state::PersistentState, win},
 };
 use eframe::egui;
 use std::time::{Duration, Instant};
@@ -53,9 +53,7 @@ impl eframe::App for App {
                             .on_hover_text("Relaunch ourselves as administrator.")
                             .on_disabled_hover_text("We are already running elevated.");
                         if button.clicked() {
-                            util::win::elevate(util::win::ElevationExitMethod::Gentle(
-                                &mut self.flags.closing,
-                            ));
+                            win::elevate(win::ElevationExitMethod::Gentle(&mut self.flags.closing));
                         }
                     });
                 });
@@ -121,7 +119,7 @@ impl App {
             if self.anti_afk.enabled {
                 ui.add_space(8.0);
                 ui.add_enabled_ui(false, |ui| {
-                    ui.label(if util::win::is_window_focused(WINDOW_TITLE) {
+                    ui.label(if win::is_window_focused(WINDOW_TITLE) {
                         "GTA is focused."
                     } else {
                         "GTA is not focused!"
