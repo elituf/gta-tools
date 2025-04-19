@@ -49,6 +49,7 @@ pub struct App {
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ctx.request_repaint_after(Duration::from_millis(100));
+        self.empty_session.run_timers(&mut self.game_handle);
         egui::TopBottomPanel::bottom("bottom_panel")
             .exact_height(25.0)
             .show(ctx, |ui| {
@@ -114,7 +115,6 @@ impl App {
         tools::header(ui, "Session");
         ui.add_enabled_ui(!self.empty_session.disabled, |ui| {
             ui.horizontal(|ui| {
-                self.empty_session.run_timers(&mut self.game_handle);
                 if ui.button("Empty current session").clicked() {
                     self.empty_session.interval = Instant::now();
                     self.empty_session.disabled = true;
