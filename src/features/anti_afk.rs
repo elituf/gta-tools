@@ -5,7 +5,7 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{
     keybd_event,
 };
 
-pub const INTERVAL: Duration = Duration::from_secs(60);
+const INTERVAL: Duration = Duration::from_secs(60);
 const PRESS_KEYS: [VIRTUAL_KEY; 2] = [VK_NUMPAD4, VK_NUMPAD6];
 
 #[derive(Debug)]
@@ -24,17 +24,19 @@ impl Default for AntiAfk {
 }
 
 impl AntiAfk {
+    pub fn can_activate(&self) -> bool {
+        use util::win::{is_any_key_pressed, is_cursor_visible, is_window_focused};
+        is_window_focused(WINDOW_TITLE) && !is_any_key_pressed(&PRESS_KEYS) && !is_cursor_visible()
+    }
+
+    pub fn should_activate(&self) -> bool {
+        self.enabled && self.interval.elapsed() >= INTERVAL
+    }
+
     pub fn activate(&mut self) {
-        if can_activate() {
-            send(&PRESS_KEYS);
-        }
+        send(&PRESS_KEYS);
         self.interval = Instant::now();
     }
-}
-
-pub fn can_activate() -> bool {
-    use util::win::{is_any_key_pressed, is_cursor_visible, is_window_focused};
-    is_window_focused(WINDOW_TITLE) && !is_any_key_pressed(&PRESS_KEYS) && !is_cursor_visible()
 }
 
 fn send(vk_codes: &[VIRTUAL_KEY]) {

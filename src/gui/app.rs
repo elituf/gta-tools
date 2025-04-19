@@ -137,8 +137,7 @@ impl App {
                 });
             }
         });
-        if self.anti_afk.enabled && self.anti_afk.interval.elapsed() >= features::anti_afk::INTERVAL
-        {
+        if self.anti_afk.can_activate() && self.anti_afk.should_activate() {
             self.anti_afk.activate();
         }
     }
@@ -269,7 +268,7 @@ impl App {
                                 ));
                                 ui.label(format!(
                                     "can activate: {}",
-                                    features::anti_afk::can_activate()
+                                    self.anti_afk.can_activate()
                                 ));
                             });
                             ui.collapsing("sysinfo", |ui| {
