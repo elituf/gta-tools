@@ -32,10 +32,11 @@ pub struct App {
     pub flags: Flags,
     pub sysinfo: sysinfo::System,
     game_handle: windows::Win32::Foundation::HANDLE,
-    pub launch: features::launch::Launch,
-    force_close: features::force_close::ForceClose,
-    empty_session: features::empty_session::EmptySession,
     pub anti_afk: features::anti_afk::AntiAfk,
+    empty_session: features::empty_session::EmptySession,
+    force_close: features::force_close::ForceClose,
+    game_networking: features::game_networking::GameNetworking,
+    pub launch: features::launch::Launch,
 }
 
 impl eframe::App for App {
@@ -147,13 +148,13 @@ impl App {
                             .add_sized([button_width, 18.0], egui::Button::new("Block"))
                             .clicked()
                         {
-                            features::game_networking::block_all(&mut self.sysinfo);
+                            self.game_networking.block_all(&mut self.sysinfo);
                         }
                         if ui
                             .add_sized([button_width, 18.0], egui::Button::new("Unblock"))
                             .clicked()
                         {
-                            features::game_networking::unblock_all();
+                            self.game_networking.unblock_all();
                         }
                     });
                 });
