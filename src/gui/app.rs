@@ -1,12 +1,6 @@
 use crate::{
-    features::{
-        self, anti_afk::AntiAfk, empty_session::EmptySession, force_close::ForceClose,
-        launch::Launch,
-    },
-    gui::{
-        settings::{self, Settings},
-        tools,
-    },
+    features,
+    gui::{settings::Settings, tools},
     util::{
         self,
         consts::{
@@ -19,10 +13,11 @@ use crate::{
 };
 use eframe::egui;
 use std::time::{Duration, Instant};
+use strum::{Display, EnumIter};
 
 pub const WINDOW_SIZE: [f32; 2] = [240.0, 240.0];
 
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Display, PartialEq, Eq, EnumIter)]
 pub enum Stage {
     #[default]
     Main,
@@ -35,10 +30,9 @@ pub struct Flags {
     pub elevated: bool,
     debug: bool,
     closing: bool,
-    current_frame: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct App {
     meta: Meta,
     pub settings: Settings,
@@ -46,40 +40,20 @@ pub struct App {
     pub flags: Flags,
     pub sysinfo: sysinfo::System,
     pub game_handle: windows::Win32::Foundation::HANDLE,
-    pub launch: Launch,
-    force_close: ForceClose,
-    empty_session: EmptySession,
-    anti_afk: AntiAfk,
-}
-
-impl Default for App {
-    fn default() -> Self {
-        Self {
-            meta: Meta::default(),
-            settings: Settings::default(),
-            stage: Stage::default(),
-            flags: Flags::default(),
-            sysinfo: sysinfo::System::new_all(),
-            game_handle: windows::Win32::Foundation::HANDLE::default(),
-            launch: Launch::default(),
-            force_close: ForceClose::default(),
-            empty_session: EmptySession::default(),
-            anti_afk: AntiAfk::default(),
-        }
-    }
+    pub launch: features::launch::Launch,
+    force_close: features::force_close::ForceClose,
+    empty_session: features::empty_session::EmptySession,
+    anti_afk: features::anti_afk::AntiAfk,
 }
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        catppuccin_egui::set_theme(ctx, self.settings.theme.into());
-        self.run_timers();
+        ctx.request_repaint_after(Duration::from_millis(100));
         egui::TopBottomPanel::bottom("bottom_panel")
             .exact_height(25.0)
             .show(ctx, |ui| {
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
-                    ui.selectable_value(&mut self.stage, Stage::Main, "Main");
-                    ui.selectable_value(&mut self.stage, Stage::Settings, "Settings");
-                    ui.selectable_value(&mut self.stage, Stage::About, "About");
+                    tools::build_menu::<Stage>(ui, &mut self.stage);
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         let button = ui
                             .add_enabled(!self.flags.elevated, egui::Button::new("Elevate"))
@@ -97,53 +71,17 @@ impl eframe::App for App {
             egui::ScrollArea::vertical()
                 .auto_shrink([false, true])
                 .show(ui, |ui| match self.stage {
-                    Stage::Main => {
-                        self.show_game(ctx, ui);
-                        self.show_session(ctx, ui);
-                        self.show_network(ctx, ui);
-                    }
-                    Stage::Settings => self.show_settings(ctx, ui),
-                    Stage::About => self.show_about(ctx, ui),
+                    Stage::Main => self.show_main_stage(ctx, ui),
+                    Stage::Settings => self.show_settings_stage(ctx, ui),
+                    Stage::About => self.show_about_stage(ctx, ui),
                 });
         });
-        if tools::check_debug_keycombo_pressed(ctx) {
+        if tools::debug_keycombo_pressed(ctx) || tools::debug_viewport_close_pressed(ctx) {
             self.flags.debug = !self.flags.debug;
         }
-        if tools::check_debug_viewport_close_button_pressed(ctx) {
-            self.flags.debug = false;
-        }
         if self.flags.debug {
-            let main_rect = ctx.input(|i| {
-                i.viewport()
-                    .clone()
-                    .outer_rect
-                    .unwrap_or(egui::Rect::EVERYTHING)
-            });
-            let position = [main_rect.right(), main_rect.min.y];
-            ctx.show_viewport_immediate(
-                egui::ViewportId::from_hash_of("debug_viewport"),
-                egui::ViewportBuilder::default()
-                    .with_title("GTA Tools Debug")
-                    .with_minimize_button(false)
-                    .with_maximize_button(false)
-                    .with_inner_size(WINDOW_SIZE)
-                    .with_position(position)
-                    .with_icon(tools::load_icon()),
-                |ctx, _class| {
-                    if tools::check_debug_keycombo_pressed(ctx) {
-                        self.flags.debug = !self.flags.debug;
-                    }
-                    egui::CentralPanel::default().show(ctx, |ui| {
-                        egui::ScrollArea::both()
-                            .auto_shrink([false, true])
-                            .show(ui, |ui| {
-                                self.show_debug(ctx, ui);
-                            });
-                    });
-                },
-            );
+            self.show_debug_viewport(ctx);
         }
-        ctx.request_repaint_after(Duration::from_millis(100));
         if self.flags.closing {
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
         }
@@ -151,45 +89,32 @@ impl eframe::App for App {
 }
 
 impl App {
-    fn show_game(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+    fn show_game_section(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
         tools::header(ui, "Game");
         ui.horizontal(|ui| {
             if ui.button("Launch").clicked() {
                 features::launch::launch(&self.launch.selected);
             }
-            tools::build_combo_box::<features::launch::Platform>(
-                ui,
-                &mut self.launch.selected,
-                "Launch",
-            );
+            egui::ComboBox::from_id_salt("Launch")
+                .selected_text(self.launch.selected.to_string())
+                .width(120.0)
+                .show_ui(ui, |ui| {
+                    tools::build_menu(ui, &mut self.launch.selected);
+                });
         });
         let force_close_button = ui.add_sized(
             [104.0, 0.0],
             egui::Button::new(&self.force_close.button_text),
         );
-        if force_close_button.clicked() && !self.force_close.prompting {
-            self.force_close.prompting();
-            self.flags.current_frame = true;
-        }
-        if self.force_close.prompting
-            && self.force_close.interval.elapsed() <= Duration::from_secs(3)
-        {
-            if force_close_button.clicked() && !self.flags.current_frame {
-                features::force_close::activate(&mut self.sysinfo);
-                self.force_close = ForceClose::default();
-            }
-        } else {
-            self.force_close = ForceClose::default();
-        }
-        if self.flags.current_frame {
-            self.flags.current_frame = false;
-        }
+        self.force_close
+            .prompt(force_close_button.clicked(), &mut self.sysinfo);
     }
 
-    fn show_session(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+    fn show_session_section(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
         tools::header(ui, "Session");
         ui.add_enabled_ui(!self.empty_session.disabled, |ui| {
             ui.horizontal(|ui| {
+                self.empty_session.run_timers(&mut self.game_handle);
                 if ui.button("Empty current session").clicked() {
                     self.empty_session.interval = Instant::now();
                     self.empty_session.disabled = true;
@@ -218,7 +143,7 @@ impl App {
         }
     }
 
-    fn show_network(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+    fn show_network_section(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
         tools::header(ui, "Network");
         egui::Frame::new()
             .outer_margin(egui::vec2(0.0, -2.0))
@@ -249,7 +174,29 @@ impl App {
             });
     }
 
-    fn show_about(&self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+    fn show_main_stage(&mut self, ctx: &egui::Context, ui: &mut egui::Ui) {
+        self.show_game_section(ctx, ui);
+        self.show_session_section(ctx, ui);
+        self.show_network_section(ctx, ui);
+    }
+
+    fn show_settings_stage(&mut self, ctx: &egui::Context, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            let selection = self.settings.theme;
+            ui.label("Theme");
+            egui::ComboBox::from_id_salt("Theme")
+                .selected_text(self.settings.theme.to_string())
+                .show_ui(ui, |ui| {
+                    tools::build_menu(ui, &mut self.settings.theme);
+                });
+            if selection != self.settings.theme {
+                catppuccin_egui::set_theme(ctx, self.settings.theme.into());
+            }
+        });
+        ui.checkbox(&mut self.settings.start_elevated, "Always start elevated");
+    }
+
+    fn show_about_stage(&self, _ctx: &egui::Context, ui: &mut egui::Ui) {
         ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
             ui.horizontal(|ui| {
                 ui.horizontal(|ui| {
@@ -285,63 +232,66 @@ impl App {
         });
     }
 
-    fn show_settings(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
-            ui.label("Theme");
-            tools::build_combo_box::<settings::Theme>(ui, &mut self.settings.theme, "Theme");
-        });
-        ui.checkbox(&mut self.settings.start_elevated, "Always start elevated");
-    }
-
-    fn show_debug(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
-        if ui.button("open storage path").clicked() {
-            open::that_detached(APP_STORAGE_PATH.as_path()).unwrap();
-        }
-        ui.collapsing("version", |ui| {
-            ui.checkbox(
-                &mut self.meta.newer_version_available,
-                "spoof new version available",
-            )
-            .on_hover_text("(this could already be checked if\nthere actually IS a new version)");
-        });
-        ui.collapsing("anti afk", |ui| {
-            ui.label(format!(
-                "timer: {}",
-                self.anti_afk.interval.elapsed().as_secs()
-            ));
-            ui.label(format!(
-                "can activate: {}",
-                features::anti_afk::can_activate()
-            ));
-        });
-        ui.collapsing("sysinfo", |ui| {
-            if ui.button("refresh all").clicked() {
-                self.sysinfo.refresh_all();
-            }
-            let pid = self
-                .sysinfo
-                .processes()
-                .iter()
-                .find(|(_, p)| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
-                .map_or_else(
-                    || "no pid found!".to_owned(),
-                    |(pid, _)| pid.as_u32().to_string(),
-                );
-            ui.label(format!("gta pid: {pid}"));
-        });
-        ui.collapsing("app state", |ui| ui.label(format!("{self:#?}")));
-    }
-
-    fn run_timers(&mut self) {
-        if self.empty_session.disabled {
-            self.empty_session.countdown.count();
-        } else {
-            self.empty_session.countdown.reset();
-        }
-        if self.empty_session.interval.elapsed() >= features::empty_session::INTERVAL {
-            features::empty_session::deactivate(&mut self.game_handle);
-            self.empty_session.disabled = false;
-        }
+    fn show_debug_viewport(&mut self, ctx: &egui::Context) {
+        let main = ctx.input(|i| i.viewport().outer_rect.unwrap_or(egui::Rect::EVERYTHING));
+        let builder = egui::ViewportBuilder::default()
+            .with_title("GTA Tools Debug")
+            .with_minimize_button(false)
+            .with_maximize_button(false)
+            .with_inner_size(WINDOW_SIZE)
+            .with_position([main.right() - 12.0, main.min.y])
+            .with_icon(tools::load_icon());
+        ctx.show_viewport_immediate(
+            egui::ViewportId::from_hash_of("debug_viewport"),
+            builder,
+            |ctx, _class| {
+                if tools::debug_keycombo_pressed(ctx) {
+                    self.flags.debug = !self.flags.debug;
+                }
+                egui::CentralPanel::default().show(ctx, |ui| {
+                    egui::ScrollArea::both()
+                        .auto_shrink([false, true])
+                        .show(ui, |ui| {
+                            if ui.button("open storage path").clicked() {
+                                open::that_detached(APP_STORAGE_PATH.as_path()).unwrap();
+                            }
+                            ui.collapsing("version", |ui| {
+                                ui.checkbox(
+                                    &mut self.meta.newer_version_available,
+                                    "spoof new version available",
+                                )
+                                .on_hover_text("(this could already be checked if\nthere actually IS a new version)");
+                            });
+                            ui.collapsing("anti afk", |ui| {
+                                ui.label(format!(
+                                    "timer: {}",
+                                    self.anti_afk.interval.elapsed().as_secs()
+                                ));
+                                ui.label(format!(
+                                    "can activate: {}",
+                                    features::anti_afk::can_activate()
+                                ));
+                            });
+                            ui.collapsing("sysinfo", |ui| {
+                                if ui.button("refresh all").clicked() {
+                                    self.sysinfo.refresh_all();
+                                }
+                                let pid = self
+                                    .sysinfo
+                                    .processes()
+                                    .iter()
+                                    .find(|(_, p)| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
+                                    .map_or_else(
+                                        || "no pid found!".to_owned(),
+                                        |(pid, _)| pid.as_u32().to_string(),
+                                    );
+                                ui.label(format!("gta pid: {pid}"));
+                            });
+                            ui.collapsing("app state", |ui| ui.label(format!("{self:#?}")));
+                        });
+                });
+            },
+        );
     }
 }
 

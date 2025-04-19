@@ -28,6 +28,20 @@ impl Default for EmptySession {
     }
 }
 
+impl EmptySession {
+    pub fn run_timers(&mut self, game_handle: &mut HANDLE) {
+        if self.disabled {
+            self.countdown.count();
+        } else {
+            self.countdown.reset();
+        }
+        if self.interval.elapsed() >= INTERVAL {
+            deactivate(game_handle);
+            self.disabled = false;
+        }
+    }
+}
+
 #[link(name = "ntdll")]
 unsafe extern "system" {
     pub unsafe fn NtSuspendProcess(ProcessHandle: HANDLE) -> NTSTATUS;
@@ -46,22 +60,22 @@ fn get_gta_pid(sysinfo: &mut System) -> u32 {
     u32::MAX
 }
 
-pub fn activate(handle: &mut HANDLE, sysinfo: &mut System) {
+pub fn activate(game_handle: &mut HANDLE, sysinfo: &mut System) {
     let pid = get_gta_pid(sysinfo);
     if pid == u32::MAX {
         return;
     }
     unsafe {
-        *handle = OpenProcess(PROCESS_SUSPEND_RESUME, false, pid).unwrap();
-        let _ = NtSuspendProcess(*handle);
+        *game_handle = OpenProcess(PROCESS_SUSPEND_RESUME, false, pid).unwrap();
+        let _ = NtSuspendProcess(*game_handle);
     }
 }
 
-pub fn deactivate(handle: &mut HANDLE) {
+pub fn deactivate(game_handle: &mut HANDLE) {
     unsafe {
-        if !handle.is_invalid() {
-            let _ = NtResumeProcess(*handle);
-            let _ = CloseHandle(*handle);
+        if !game_handle.is_invalid() {
+            let _ = NtResumeProcess(*game_handle);
+            let _ = CloseHandle(*game_handle);
         }
     }
 }

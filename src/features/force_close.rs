@@ -1,12 +1,15 @@
 use crate::util::consts::game::{EXE_ENHANCED, EXE_LEGACY};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 use sysinfo::System;
+
+pub const INTERVAL: Duration = Duration::from_secs(3);
 
 #[derive(Debug)]
 pub struct ForceClose {
     pub button_text: String,
     pub prompting: bool,
     pub interval: Instant,
+    current_frame: bool,
 }
 
 impl Default for ForceClose {
@@ -15,15 +18,32 @@ impl Default for ForceClose {
             button_text: "Force close game".to_owned(),
             prompting: false,
             interval: Instant::now(),
+            current_frame: false,
         }
     }
 }
 
 impl ForceClose {
-    pub fn prompting(&mut self) {
-        self.button_text = "Are you sure?".to_owned();
-        self.prompting = true;
-        self.interval = Instant::now();
+    pub fn prompt(&mut self, force_close_button_clicked: bool, sysinfo: &mut System) {
+        if force_close_button_clicked && !self.prompting {
+            *self = Self {
+                button_text: "Are you sure?".to_owned(),
+                prompting: true,
+                interval: Instant::now(),
+                current_frame: true,
+            }
+        }
+        if self.prompting && self.interval.elapsed() <= INTERVAL {
+            if force_close_button_clicked && !self.current_frame {
+                activate(sysinfo);
+                *self = Self::default();
+            }
+        } else {
+            *self = Self::default();
+        }
+        if self.current_frame {
+            self.current_frame = false;
+        }
     }
 }
 

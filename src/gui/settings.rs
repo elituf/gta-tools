@@ -1,12 +1,15 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
-use strum::EnumIter;
+use strum::{Display, EnumIter};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
+#[derive(Clone, Copy, Debug, Display, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
 pub enum Theme {
+    #[strum(to_string = "Catppuccin Latte")]
     CatppuccinLatte,
+    #[strum(to_string = "Catppuccin Frappe")]
     CatppuccinFrappe,
+    #[strum(to_string = "Catppuccin Macchiato")]
     CatppuccinMacchiato,
+    #[strum(to_string = "Catppuccin Mocha")]
     CatppuccinMocha,
 }
 
@@ -18,24 +21,6 @@ impl From<Theme> for catppuccin_egui::Theme {
             Theme::CatppuccinMacchiato => catppuccin_egui::MACCHIATO,
             Theme::CatppuccinMocha => catppuccin_egui::MOCHA,
         }
-    }
-}
-
-impl Display for Theme {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let x = match self {
-            Self::CatppuccinLatte => "Catppuccin Latte",
-            Self::CatppuccinFrappe => "Catppuccin Frappe",
-            Self::CatppuccinMacchiato => "Catppuccin Macchiato",
-            Self::CatppuccinMocha => "Catppuccin Mocha",
-        };
-        write!(f, "{x}")
-    }
-}
-
-impl Theme {
-    pub fn to_catppuccin(self) -> catppuccin_egui::Theme {
-        self.into()
     }
 }
 

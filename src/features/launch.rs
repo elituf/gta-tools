@@ -1,25 +1,16 @@
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, path::PathBuf, process::Command};
-use strum::EnumIter;
+use std::{path::PathBuf, process::Command};
+use strum::{Display, EnumIter};
 use winreg::{RegKey, enums::HKEY_LOCAL_MACHINE};
 
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
+#[derive(Clone, Copy, Default, Debug, Display, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
 pub enum Platform {
     #[default]
     Steam,
+    #[strum(to_string = "Rockstar Games")]
     Rockstar,
+    #[strum(to_string = "Epic Games")]
     Epic,
-}
-
-impl Display for Platform {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let x = match self {
-            Self::Steam => "Steam",
-            Self::Rockstar => "Rockstar Games",
-            Self::Epic => "Epic Games",
-        };
-        write!(f, "{x}")
-    }
 }
 
 #[derive(Debug, Default)]

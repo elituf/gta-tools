@@ -35,7 +35,9 @@ fn app_creator(
         util::win::elevate(util::win::ElevationExitMethod::Forced);
     }
     app.flags.elevated = elevated;
+    app.sysinfo.refresh_all();
     egui_extras::install_image_loaders(&cc.egui_ctx);
+    catppuccin_egui::set_theme(&cc.egui_ctx, app.settings.theme.into());
     cc.egui_ctx.style_mut(|style| {
         style.spacing.item_spacing = egui::vec2(4.0, 4.0);
         style.interaction.selectable_labels = false;

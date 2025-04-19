@@ -21,24 +21,20 @@ pub fn header(ui: &mut egui::Ui, text: &str) {
     });
 }
 
-pub fn build_combo_box<E>(ui: &mut egui::Ui, current_value: &mut E, label: impl std::hash::Hash)
+pub fn build_menu<E>(ui: &mut egui::Ui, current_value: &mut E)
 where
     E: strum::IntoEnumIterator + std::fmt::Display + std::cmp::PartialEq + Copy,
 {
-    egui::ComboBox::from_id_salt(label)
-        .selected_text(current_value.to_string())
-        .show_ui(ui, |ui| {
-            E::iter().for_each(|v| {
-                ui.selectable_value(current_value, v, v.to_string());
-            });
-        });
+    E::iter().for_each(|variant| {
+        ui.selectable_value(current_value, variant, variant.to_string());
+    });
 }
 
-pub fn check_debug_keycombo_pressed(ctx: &egui::Context) -> bool {
+pub fn debug_keycombo_pressed(ctx: &egui::Context) -> bool {
     ctx.input(|i| i.modifiers.all() && i.key_pressed(egui::Key::D))
 }
 
-pub fn check_debug_viewport_close_button_pressed(ctx: &egui::Context) -> bool {
+pub fn debug_viewport_close_pressed(ctx: &egui::Context) -> bool {
     ctx.input(|i| {
         i.raw
             .viewports
