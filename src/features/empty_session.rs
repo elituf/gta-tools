@@ -9,7 +9,7 @@ use windows::Win32::{
     System::Threading::{OpenProcess, PROCESS_SUSPEND_RESUME},
 };
 
-pub const INTERVAL: Duration = Duration::from_secs(10);
+const INTERVAL: Duration = Duration::from_secs(10);
 
 #[derive(Debug)]
 pub struct EmptySession {
@@ -44,8 +44,8 @@ impl EmptySession {
 
 #[link(name = "ntdll")]
 unsafe extern "system" {
-    pub unsafe fn NtSuspendProcess(ProcessHandle: HANDLE) -> NTSTATUS;
-    pub unsafe fn NtResumeProcess(ProcessHandle: HANDLE) -> NTSTATUS;
+    unsafe fn NtSuspendProcess(ProcessHandle: HANDLE) -> NTSTATUS;
+    unsafe fn NtResumeProcess(ProcessHandle: HANDLE) -> NTSTATUS;
 }
 
 fn get_gta_pid(sysinfo: &mut System) -> u32 {

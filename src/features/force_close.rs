@@ -2,13 +2,13 @@ use crate::util::consts::game::{EXE_ENHANCED, EXE_LEGACY};
 use std::time::{Duration, Instant};
 use sysinfo::System;
 
-pub const INTERVAL: Duration = Duration::from_secs(3);
+const INTERVAL: Duration = Duration::from_secs(3);
 
 #[derive(Debug)]
 pub struct ForceClose {
     pub button_text: String,
-    pub prompting: bool,
-    pub interval: Instant,
+    prompting: bool,
+    interval: Instant,
     current_frame: bool,
 }
 
@@ -47,7 +47,7 @@ impl ForceClose {
     }
 }
 
-pub fn activate(sysinfo: &mut System) {
+fn activate(sysinfo: &mut System) {
     sysinfo.refresh_all();
     sysinfo
         .processes()

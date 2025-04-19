@@ -2,11 +2,11 @@ use std::time::{Duration, Instant};
 
 #[derive(Debug)]
 pub struct Countdown {
-    pub i: u64,
-    pub i_original: u64,
+    i: u64,
+    i_original: u64,
     pub i_string: String,
-    pub interval: Instant,
-    pub first_count: bool,
+    interval: Instant,
+    first_count: bool,
 }
 
 impl Countdown {

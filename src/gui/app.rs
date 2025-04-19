@@ -18,7 +18,7 @@ use strum::{Display, EnumIter};
 pub const WINDOW_SIZE: [f32; 2] = [240.0, 240.0];
 
 #[derive(Clone, Copy, Debug, Default, Display, PartialEq, Eq, EnumIter)]
-pub enum Stage {
+enum Stage {
     #[default]
     Main,
     Settings,
@@ -39,7 +39,7 @@ pub struct App {
     stage: Stage,
     pub flags: Flags,
     pub sysinfo: sysinfo::System,
-    pub game_handle: windows::Win32::Foundation::HANDLE,
+    game_handle: windows::Win32::Foundation::HANDLE,
     pub launch: features::launch::Launch,
     force_close: features::force_close::ForceClose,
     empty_session: features::empty_session::EmptySession,

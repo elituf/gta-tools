@@ -1,4 +1,4 @@
-pub mod codeberg;
+mod codeberg;
 pub mod consts;
 pub mod countdown;
 pub mod meta;

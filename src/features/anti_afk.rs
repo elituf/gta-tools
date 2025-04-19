@@ -37,7 +37,7 @@ pub fn can_activate() -> bool {
     is_window_focused(WINDOW_TITLE) && !is_any_key_pressed(&PRESS_KEYS) && !is_cursor_visible()
 }
 
-pub fn send(vk_codes: &[VIRTUAL_KEY]) {
+fn send(vk_codes: &[VIRTUAL_KEY]) {
     vk_codes.iter().for_each(|vk_code| unsafe {
         keybd_event(
             vk_code.0 as u8,
