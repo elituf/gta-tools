@@ -24,24 +24,33 @@ fn panic_hook(panic_info: &std::panic::PanicHookInfo<'_>) {
 fn app_creator(
     cc: &eframe::CreationContext<'_>,
 ) -> Result<Box<dyn eframe::App>, Box<dyn std::error::Error + Send + Sync>> {
+    // use our own panic hook which logs all panics to a file
     std::panic::set_hook(Box::new(panic_hook));
+    // initialize App early to modify some things before returning it
     let mut app = Box::<App>::default();
+    // load previously selected launch platform & settings from persistent state
     if let Some(persistent_state) = PersistentState::get() {
         app.launch.selected = persistent_state.launcher;
         app.settings = persistent_state.settings;
     }
+    // check if we're elevated. if not, and the user wants an elevated launch - relaunch elevated
     let elevated = util::win::is_elevated();
     if app.settings.start_elevated && !elevated {
         util::win::elevate(util::win::ElevationExitMethod::Forced);
     }
     app.flags.elevated = elevated;
+    // refresh sysinfo because it initializes with nothing
     app.sysinfo.refresh_all();
+    // enable image loading support in egui
     egui_extras::install_image_loaders(&cc.egui_ctx);
+    // set our initial theme, from earlier loaded settings
     catppuccin_egui::set_theme(&cc.egui_ctx, app.settings.theme.into());
+    // apply some global styling that we like
     cc.egui_ctx.style_mut(|style| {
         style.spacing.item_spacing = egui::vec2(4.0, 4.0);
         style.interaction.selectable_labels = false;
     });
+    // load any extra fonts that we need
     let mut fonts = egui::FontDefinitions::default();
     fonts.font_data.insert(
         "Ubuntu-Regular".to_owned(),
@@ -52,6 +61,7 @@ fn app_creator(
         vec!["Ubuntu-Regular".to_owned()],
     );
     cc.egui_ctx.set_fonts(fonts);
+    // finally return the App
     Ok(app)
 }
 
