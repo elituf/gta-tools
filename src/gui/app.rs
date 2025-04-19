@@ -156,6 +156,15 @@ impl App {
                         {
                             self.game_networking.unblock_all();
                         }
+                        let tint = match self.game_networking.is_blocked {
+                            true => egui::Color32::from_hex("#f96554").unwrap(),
+                            false => egui::Color32::from_hex("#68f954").unwrap(),
+                        };
+                        ui.add(
+                            egui::Image::new(egui::include_image!("../../assets/circle.svg"))
+                                .max_size([4.0, 4.0].into())
+                                .tint(tint),
+                        );
                     });
                 });
                 response.response.on_disabled_hover_text(
