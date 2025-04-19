@@ -297,11 +297,11 @@ impl App {
 impl Drop for App {
     fn drop(&mut self) {
         // save any persistent state to config file
-        let persistent_state = PersistentState {
+        PersistentState {
             launcher: self.launch.selected,
             settings: self.settings.clone(),
-        };
-        persistent_state.set();
+        }
+        .set();
         // make sure we are not suspending game
         features::empty_session::deactivate(&mut self.game_handle);
     }
