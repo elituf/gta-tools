@@ -7,8 +7,8 @@ const INTERVAL: Duration = Duration::from_secs(3);
 #[derive(Debug)]
 pub struct ForceClose {
     pub button_text: String,
-    prompting: bool,
-    interval: Instant,
+    timer: Instant,
+    counting: bool,
     current_frame: bool,
 }
 
@@ -16,8 +16,8 @@ impl Default for ForceClose {
     fn default() -> Self {
         Self {
             button_text: "Force close game".to_owned(),
-            prompting: false,
-            interval: Instant::now(),
+            timer: Instant::now(),
+            counting: false,
             current_frame: false,
         }
     }
@@ -25,22 +25,28 @@ impl Default for ForceClose {
 
 impl ForceClose {
     pub fn prompt(&mut self, force_close_button_clicked: bool, sysinfo: &mut System) {
-        if force_close_button_clicked && !self.prompting {
-            *self = Self {
-                button_text: "Are you sure?".to_owned(),
-                prompting: true,
-                interval: Instant::now(),
-                current_frame: true,
-            }
+        if force_close_button_clicked && !self.counting {
+            self.button_text = "Are you sure?".to_owned();
+            self.timer = Instant::now();
+            self.counting = true;
+            self.current_frame = true;
         }
-        if self.prompting && self.interval.elapsed() <= INTERVAL {
+        if self.counting && self.timer.elapsed() >= INTERVAL {
+            self.reset();
+        } else {
             if force_close_button_clicked && !self.current_frame {
                 activate(sysinfo);
-                *self = Self::default();
+                self.reset();
             }
-        } else {
-            *self = Self::default();
         }
+        self.finish_current_frame();
+    }
+
+    fn reset(&mut self) {
+        *self = Self::default();
+    }
+
+    fn finish_current_frame(&mut self) {
         if self.current_frame {
             self.current_frame = false;
         }
