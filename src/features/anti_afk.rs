@@ -1,8 +1,8 @@
 use crate::util::{self, consts::game::WINDOW_TITLE};
 use std::time::{Duration, Instant};
 use windows::Win32::UI::Input::KeyboardAndMouse::{
-    KEYBD_EVENT_FLAGS, MAP_VIRTUAL_KEY_TYPE, MapVirtualKeyW, VIRTUAL_KEY, VK_NUMPAD4, VK_NUMPAD6,
-    keybd_event,
+    INPUT, INPUT_KEYBOARD, KEYBD_EVENT_FLAGS, KEYBDINPUT, KEYEVENTF_KEYUP, MAPVK_VK_TO_VSC,
+    MapVirtualKeyW, SendInput, VIRTUAL_KEY, VK_NUMPAD4, VK_NUMPAD6,
 };
 
 const INTERVAL: Duration = Duration::from_secs(60);
@@ -40,26 +40,23 @@ impl AntiAfk {
 }
 
 fn send(vk_codes: &[VIRTUAL_KEY]) {
-    vk_codes.iter().for_each(|vk_code| unsafe {
-        keybd_event(
-            vk_code.0 as u8,
-            u8::try_from(MapVirtualKeyW(
-                u32::from(vk_code.0),
-                MAP_VIRTUAL_KEY_TYPE(0),
-            ))
-            .unwrap(),
-            KEYBD_EVENT_FLAGS(0),
-            0,
-        );
-        keybd_event(
-            vk_code.0 as u8,
-            u8::try_from(MapVirtualKeyW(
-                u32::from(vk_code.0),
-                MAP_VIRTUAL_KEY_TYPE(0),
-            ))
-            .unwrap(),
-            KEYBD_EVENT_FLAGS(2),
-            0,
-        );
-    });
+    let mut inputs = Vec::new();
+    for &vk_code in vk_codes {
+        let scan_code = unsafe { MapVirtualKeyW(u32::from(vk_code.0), MAPVK_VK_TO_VSC) as u16 };
+        for event in [KEYBD_EVENT_FLAGS(0), KEYEVENTF_KEYUP] {
+            let mut input = INPUT {
+                r#type: INPUT_KEYBOARD,
+                ..Default::default()
+            };
+            input.Anonymous.ki = KEYBDINPUT {
+                wVk: vk_code,
+                wScan: scan_code,
+                dwFlags: event,
+                time: 0,
+                dwExtraInfo: 0,
+            };
+            inputs.push(input);
+        }
+        unsafe { SendInput(&inputs, size_of::<INPUT>() as i32) };
+    }
 }
