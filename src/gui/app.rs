@@ -139,9 +139,20 @@ impl App {
             .outer_margin(egui::vec2(0.0, -2.0))
             .show(ui, |ui| {
                 let response = ui.add_enabled_ui(self.flags.elevated, |ui| {
-                    let label = ui.label("Game's network access");
+                    let label = ui.horizontal(|ui| {
+                        let label = ui.label("Game's network access");
+                        ui.add_space(1.0);
+                        ui.add(
+                            egui::Image::new(egui::include_image!("../../assets/circle.svg"))
+                                .max_size([4.0, 4.0].into())
+                                .tint(self.game_networking.blocked_status.to_color32()),
+                        )
+                        .on_hover_text("This turns yellow if GTA Tools\ncannot find your game.");
+                        self.game_networking.if_failed_return_to_unblocked();
+                        label
+                    });
                     ui.horizontal(|ui| {
-                        let available_width = label.rect.width();
+                        let available_width = label.inner.rect.width();
                         let spacing = ui.spacing().item_spacing.x;
                         let button_width = (available_width - spacing) / 2.0;
                         if ui
@@ -156,13 +167,6 @@ impl App {
                         {
                             self.game_networking.unblock_all();
                         }
-                        ui.add(
-                            egui::Image::new(egui::include_image!("../../assets/circle.svg"))
-                                .max_size([4.0, 4.0].into())
-                                .tint(self.game_networking.blocked_status.to_color32()),
-                        )
-                        .on_hover_text("This turns yellow if GTA Tools\ncannot find your game.");
-                        self.game_networking.if_failed_return_to_unblocked();
                     });
                 });
                 response.response.on_disabled_hover_text(

@@ -1,7 +1,4 @@
-use crate::util::consts::{
-    colours,
-    game::{EXE_ENHANCED, EXE_LEGACY},
-};
+use crate::util::consts::game::{EXE_ENHANCED, EXE_LEGACY};
 use std::{
     path::Path,
     time::{Duration, Instant},
@@ -40,16 +37,6 @@ impl From<bool> for BlockedStatus {
             Self::Blocked
         } else {
             Self::Unblocked
-        }
-    }
-}
-
-impl From<BlockedStatus> for eframe::egui::Color32 {
-    fn from(value: BlockedStatus) -> Self {
-        match value {
-            BlockedStatus::Blocked => colours::RED,
-            BlockedStatus::Failed => colours::YELLOW,
-            BlockedStatus::Unblocked => colours::GREEN,
         }
     }
 }
