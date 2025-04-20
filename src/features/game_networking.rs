@@ -6,7 +6,6 @@ use std::{
 use sysinfo::System;
 use windows::{
     Win32::{
-        Foundation::E_INVALIDARG,
         NetworkManagement::WindowsFirewall::{
             INetFwPolicy2, INetFwRule, NET_FW_ACTION_BLOCK, NET_FW_IP_PROTOCOL_ANY,
             NET_FW_RULE_DIR_IN, NET_FW_RULE_DIR_OUT, NetFwPolicy2, NetFwRule,
@@ -57,14 +56,12 @@ pub struct GameNetworking {
 
 impl Default for GameNetworking {
     fn default() -> Self {
-        let mut gn = Self {
-            blocked_status: BlockedStatus::Unblocked,
+        Self {
+            blocked_status: GameNetworking::is_blocked().into(),
             com_initialized: unsafe { CoInitializeEx(None, COINIT_MULTITHREADED) }.is_ok(),
             timer: Instant::now(),
             counting: false,
-        };
-        gn.blocked_status = gn.is_blocked().into();
-        gn
+        }
     }
 }
 
@@ -87,60 +84,37 @@ impl GameNetworking {
         let policy: INetFwPolicy2 =
             unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER).unwrap() };
         let rules = unsafe { policy.Rules().unwrap() };
-        let filter_name_in = BSTR::from(FILTER_NAME_IN);
-        let filter_name_out = BSTR::from(FILTER_NAME_OUT);
-        unsafe {
-            let _ = rules.Remove(&filter_name_in);
-            let _ = rules.Remove(&filter_name_out);
-        }
         let exe_path = BSTR::from(exe_path.to_string_lossy().to_string());
-        unsafe {
-            let inbound_rule: INetFwRule =
-                CoCreateInstance(&NetFwRule, None, CLSCTX_INPROC_SERVER).unwrap();
-            inbound_rule.SetName(&filter_name_in).unwrap();
-            inbound_rule.SetApplicationName(&exe_path).unwrap();
-            inbound_rule.SetDirection(NET_FW_RULE_DIR_IN).unwrap();
-            inbound_rule.SetEnabled(true.into()).unwrap();
-            inbound_rule.SetAction(NET_FW_ACTION_BLOCK).unwrap();
-            inbound_rule.SetProtocol(NET_FW_IP_PROTOCOL_ANY.0).unwrap();
-            rules.Add(&inbound_rule).unwrap();
+        for filter in [
+            (FILTER_NAME_IN, NET_FW_RULE_DIR_IN),
+            (FILTER_NAME_OUT, NET_FW_RULE_DIR_OUT),
+        ] {
+            let _ = unsafe { rules.Remove(&BSTR::from(filter.0)) };
+            unsafe {
+                let rule: INetFwRule =
+                    CoCreateInstance(&NetFwRule, None, CLSCTX_INPROC_SERVER).unwrap();
+                rule.SetName(&BSTR::from(filter.0)).unwrap();
+                rule.SetApplicationName(&exe_path).unwrap();
+                rule.SetDirection(filter.1).unwrap();
+                rule.SetEnabled(true.into()).unwrap();
+                rule.SetAction(NET_FW_ACTION_BLOCK).unwrap();
+                rule.SetProtocol(NET_FW_IP_PROTOCOL_ANY.0).unwrap();
+                rules.Add(&rule).unwrap();
+            }
         }
-        unsafe {
-            let outbound_rule: INetFwRule =
-                CoCreateInstance(&NetFwRule, None, CLSCTX_INPROC_SERVER).unwrap();
-            outbound_rule.SetName(&filter_name_out).unwrap();
-            outbound_rule.SetApplicationName(&exe_path).unwrap();
-            outbound_rule.SetDirection(NET_FW_RULE_DIR_OUT).unwrap();
-            outbound_rule.SetEnabled(true.into()).unwrap();
-            outbound_rule.SetAction(NET_FW_ACTION_BLOCK).unwrap();
-            outbound_rule.SetProtocol(NET_FW_IP_PROTOCOL_ANY.0).unwrap();
-            rules.Add(&outbound_rule).unwrap();
-        }
-        self.blocked_status = self.is_blocked().into();
+        self.blocked_status = GameNetworking::is_blocked().into();
     }
 
     pub fn unblock_all(&mut self) {
         let policy: INetFwPolicy2 =
             unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER).unwrap() };
         let rules = unsafe { policy.Rules().unwrap() };
-        unsafe {
-            let result = rules.Remove(&BSTR::from(FILTER_NAME_IN));
-            if let Err(ref why) = result {
-                if why.code() != E_INVALIDARG {
-                    result.unwrap();
-                }
-            }
-            let result = rules.Remove(&BSTR::from(FILTER_NAME_OUT));
-            if let Err(ref why) = result {
-                if why.code() != E_INVALIDARG {
-                    result.unwrap();
-                }
-            }
-        }
-        self.blocked_status = self.is_blocked().into();
+        unsafe { rules.Remove(&BSTR::from(FILTER_NAME_IN)).unwrap() };
+        unsafe { rules.Remove(&BSTR::from(FILTER_NAME_OUT)).unwrap() };
+        self.blocked_status = GameNetworking::is_blocked().into();
     }
 
-    fn is_blocked(&self) -> bool {
+    fn is_blocked() -> bool {
         let policy: INetFwPolicy2 =
             unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER).unwrap() };
         let rules = unsafe { policy.Rules().unwrap() };
