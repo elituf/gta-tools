@@ -14,3 +14,9 @@ impl From<BlockedStatus> for egui::Color32 {
         }
     }
 }
+
+impl BlockedStatus {
+    pub fn to_color32(self) -> egui::Color32 {
+        self.into()
+    }
+}

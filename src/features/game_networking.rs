@@ -40,12 +40,6 @@ impl From<bool> for BlockedStatus {
     }
 }
 
-impl BlockedStatus {
-    pub fn to_color32(self) -> eframe::egui::Color32 {
-        self.into()
-    }
-}
-
 #[derive(Debug)]
 pub struct GameNetworking {
     com_initialized: bool,
