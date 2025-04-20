@@ -51,7 +51,7 @@ pub struct GameNetworking {
 impl Default for GameNetworking {
     fn default() -> Self {
         Self {
-            blocked_status: GameNetworking::is_blocked().into(),
+            blocked_status: Self::is_blocked().into(),
             com_initialized: unsafe { CoInitializeEx(None, COINIT_MULTITHREADED) }.is_ok(),
             timer: Instant::now(),
             counting: false,
@@ -96,7 +96,7 @@ impl GameNetworking {
                 rules.Add(&rule).unwrap();
             }
         }
-        self.blocked_status = GameNetworking::is_blocked().into();
+        self.blocked_status = Self::is_blocked().into();
     }
 
     pub fn unblock_all(&mut self) {
@@ -105,7 +105,7 @@ impl GameNetworking {
         let rules = unsafe { policy.Rules().unwrap() };
         unsafe { rules.Remove(&BSTR::from(FILTER_NAME_IN)).unwrap() };
         unsafe { rules.Remove(&BSTR::from(FILTER_NAME_OUT)).unwrap() };
-        self.blocked_status = GameNetworking::is_blocked().into();
+        self.blocked_status = Self::is_blocked().into();
     }
 
     fn is_blocked() -> bool {
