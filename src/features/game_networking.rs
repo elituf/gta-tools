@@ -36,9 +36,10 @@ pub enum BlockedStatus {
 
 impl From<bool> for BlockedStatus {
     fn from(value: bool) -> Self {
-        match value {
-            true => Self::Blocked,
-            false => Self::Unblocked,
+        if value {
+            Self::Blocked
+        } else {
+            Self::Unblocked
         }
     }
 }
@@ -54,8 +55,8 @@ impl From<BlockedStatus> for eframe::egui::Color32 {
 }
 
 impl BlockedStatus {
-    pub fn to_color32(&self) -> eframe::egui::Color32 {
-        (*self).into()
+    pub fn to_color32(self) -> eframe::egui::Color32 {
+        self.into()
     }
 }
 
@@ -172,7 +173,7 @@ impl GameNetworking {
         {
             self.counting = false;
             self.blocked_status = BlockedStatus::Unblocked;
-        };
+        }
     }
 }
 

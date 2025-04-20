@@ -33,11 +33,9 @@ impl ForceClose {
         }
         if self.counting && self.timer.elapsed() >= INTERVAL {
             self.reset();
-        } else {
-            if force_close_button_clicked && !self.current_frame {
-                activate(sysinfo);
-                self.reset();
-            }
+        } else if force_close_button_clicked && !self.current_frame {
+            activate(sysinfo);
+            self.reset();
         }
         self.finish_current_frame();
     }
