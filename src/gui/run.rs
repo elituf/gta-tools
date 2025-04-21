@@ -34,11 +34,9 @@ fn app_creator(
         app.settings = persistent_state.settings;
     }
     // check if we're elevated. if not, and the user wants an elevated launch - relaunch elevated
-    let elevated = util::win::is_elevated();
-    if app.settings.start_elevated && !elevated {
+    if !app.flags.elevated && app.settings.start_elevated {
         util::win::elevate(util::win::ElevationExitMethod::Forced);
     }
-    app.flags.elevated = elevated;
     // refresh sysinfo because it initializes with nothing
     app.sysinfo.refresh_all();
     // enable image loading support in egui

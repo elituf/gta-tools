@@ -17,11 +17,21 @@ enum Stage {
     About,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Flags {
     pub elevated: bool,
     pub debug: bool,
     closing: bool,
+}
+
+impl Default for Flags {
+    fn default() -> Self {
+        Self {
+            elevated: win::is_elevated(),
+            debug: false,
+            closing: false,
+        }
+    }
 }
 
 #[derive(Debug, Default)]
