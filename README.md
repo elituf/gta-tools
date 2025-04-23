@@ -1,9 +1,11 @@
 # GTA Tools
+
 A toolset of convenient things for GTA V Online.
 
 ![](https://i.vgy.me/maLh8W.png)
 
 ## Installing
+
 **Option 1** — <ins>Download</ins>  
 Download the latest release [here](https://codeberg.org/futile/gta-tools/releases/download/latest/gta-tools.exe) and place it somewhere convenient for you, such as Documents. You could then make a shortcut titled "GTA Tools", and pin it to taskbar or Start.
 
