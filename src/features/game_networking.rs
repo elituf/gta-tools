@@ -3,6 +3,7 @@ use std::{
     path::Path,
     time::{Duration, Instant},
 };
+use strum::{Display, EnumIter};
 use sysinfo::System;
 use windows::{
     Win32::{
@@ -23,7 +24,7 @@ const FILTER_NAME_OUT: &str = "[GTA Tools] Block all outbound traffic for GTA V"
 
 const INTERVAL: Duration = Duration::from_secs(3);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Display, PartialEq, Eq, EnumIter)]
 pub enum BlockedStatus {
     Blocked,
     Failed,

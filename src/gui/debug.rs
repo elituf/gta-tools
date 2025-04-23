@@ -50,6 +50,15 @@ impl App {
                                     };
                                     ui.label(format!("focused: \"{current_title}\""));
                                 });
+                                ui.horizontal(|ui| {
+                                    ui.label("blocked_status");
+                                    egui::ComboBox::from_id_salt("blocked_status")
+                                    .selected_text(&self.game_networking.blocked_status.to_string())
+                                    .show_ui(ui, |ui| {
+                                        tools::build_menu(ui, &mut self.game_networking.blocked_status);
+                                    });
+
+                                });
                             });
                             ui.collapsing("anti afk", |ui| {
                                 ui.label(format!(

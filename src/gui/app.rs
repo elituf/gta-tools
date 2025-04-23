@@ -45,7 +45,7 @@ pub struct App {
     pub anti_afk: features::anti_afk::AntiAfk,
     empty_session: features::empty_session::EmptySession,
     force_close: features::force_close::ForceClose,
-    game_networking: features::game_networking::GameNetworking,
+    pub game_networking: features::game_networking::GameNetworking,
     pub launch: features::launch::Launch,
 }
 
