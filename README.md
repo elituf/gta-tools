@@ -2,7 +2,7 @@
 
 A toolset of convenient things for GTA V Online.
 
-![](https://i.vgy.me/maLh8W.png)
+![](https://i.vgy.me/aQ1qgw.png)
 
 ## Installing
 
