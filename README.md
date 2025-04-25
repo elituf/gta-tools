@@ -43,7 +43,7 @@ The other feature is <kbd>Anti AFK</kbd>, which, when toggled, prevents you from
 
 #### Network
 
-The last session has a single feature, <kbd>Game's network access</kbd>, with a coloured indicator dot, and two buttons, <kbd>Block</kbd> and <kbd>Unblock</kbd>. This is the feature that requires administrator. This feature blocks/unblocks GTA V's entire internet access using the Windows Firewall. The coloured indicator dot has these meanings:
+The last section has a single feature, <kbd>Game's network access</kbd>, with a coloured indicator dot, and two buttons, <kbd>Block</kbd> and <kbd>Unblock</kbd>. This is the feature that requires administrator. This feature blocks/unblocks GTA V's entire internet access using the Windows Firewall. The coloured indicator dot has these meanings:
 * **Green** - the game is connected to the internet
 * **Yellow** - the game could not be found running, and thus was not blocked
 * **Red** - the game is blocked from the internet
