@@ -57,6 +57,6 @@ fn send(vk_codes: &[VIRTUAL_KEY]) {
             };
             inputs.push(input);
         }
-        unsafe { SendInput(&inputs, size_of::<INPUT>() as i32) };
     }
+    unsafe { SendInput(&inputs, size_of::<INPUT>() as i32) };
 }
