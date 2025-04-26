@@ -152,7 +152,7 @@ impl App {
                     let label = ui.horizontal(|ui| {
                         let label = ui.label("Game's network access");
                         ui.add_space(1.0);
-                        ui.create_indicator_dot(self.game_networking.blocked_status.to_color32())
+                        ui.create_indicator_dot(self.game_networking.blocked_status)
                             .on_hover_text(
                                 "This turns yellow if GTA Tools\ncannot find your game.",
                             );
