@@ -118,7 +118,7 @@ impl GameNetworking {
         in_rule_exists || out_rule_exists
     }
 
-    pub fn if_failed_return_to_unblocked(&mut self) {
+    pub fn if_failed_return_to_boolean(&mut self) {
         if self.blocked_status == BlockedStatus::Failed && !self.counting {
             self.counting = true;
             self.timer = Instant::now();
@@ -128,7 +128,7 @@ impl GameNetworking {
             && self.timer.elapsed() >= INTERVAL
         {
             self.counting = false;
-            self.blocked_status = BlockedStatus::Unblocked;
+            self.blocked_status = Self::is_blocked().into();
         }
     }
 }

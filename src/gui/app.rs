@@ -158,7 +158,7 @@ impl App {
                                 .tint(self.game_networking.blocked_status.to_color32()),
                         )
                         .on_hover_text("This turns yellow if GTA Tools\ncannot find your game.");
-                        self.game_networking.if_failed_return_to_unblocked();
+                        self.game_networking.if_failed_return_to_boolean();
                         label
                     });
                     ui.horizontal(|ui| {
