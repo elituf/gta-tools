@@ -2,6 +2,7 @@ use crate::{
     gui::{
         app::{App, WINDOW_SIZE},
         tools,
+        ui_ext::UiExt,
     },
     util::consts::{
         APP_STORAGE_PATH,
@@ -55,7 +56,7 @@ impl App {
                                     egui::ComboBox::from_id_salt("blocked_status")
                                     .selected_text(&self.game_networking.blocked_status.to_string())
                                     .show_ui(ui, |ui| {
-                                        tools::build_menu(ui, &mut self.game_networking.blocked_status);
+                                        ui.build_menu(&mut self.game_networking.blocked_status);
                                     });
 
                                 });

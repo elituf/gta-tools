@@ -11,25 +11,6 @@ pub fn load_icon() -> egui::IconData {
     }
 }
 
-pub fn header(ui: &mut egui::Ui, text: &str) {
-    ui.horizontal(|ui| {
-        ui.label(egui::RichText::new(text).font(egui::FontId::new(
-            12.5,
-            egui::FontFamily::Name("Ubuntu-Regular".into()),
-        )));
-        ui.add(egui::Separator::default().horizontal());
-    });
-}
-
-pub fn build_menu<E>(ui: &mut egui::Ui, current_value: &mut E)
-where
-    E: strum::IntoEnumIterator + std::fmt::Display + std::cmp::PartialEq + Copy,
-{
-    E::iter().for_each(|variant| {
-        ui.selectable_value(current_value, variant, variant.to_string());
-    });
-}
-
 pub fn debug_keycombo_pressed(ctx: &egui::Context) -> bool {
     ctx.input(|i| i.modifiers.all() && i.key_pressed(egui::Key::D))
 }

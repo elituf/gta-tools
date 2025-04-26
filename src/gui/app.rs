@@ -1,6 +1,6 @@
 use crate::{
     features,
-    gui::{settings::Settings, tools},
+    gui::{settings::Settings, tools, ui_ext::UiExt},
     util::{consts::game::WINDOW_TITLE, meta::Meta, persistent_state::PersistentState, win},
 };
 use eframe::egui;
@@ -57,7 +57,7 @@ impl eframe::App for App {
             .exact_height(25.0)
             .show(ctx, |ui| {
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
-                    tools::build_menu::<Stage>(ui, &mut self.stage);
+                    ui.build_menu(&mut self.stage);
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         let button = ui
                             .add_enabled(!self.flags.elevated, egui::Button::new("Elevate"))
@@ -92,7 +92,7 @@ impl eframe::App for App {
 
 impl App {
     fn show_game_section(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
-        tools::header(ui, "Game");
+        ui.header("Game");
         ui.horizontal(|ui| {
             if ui.button("Launch").clicked() {
                 features::launch::launch(&self.launch.selected);
@@ -101,7 +101,7 @@ impl App {
                 .selected_text(self.launch.selected.to_string())
                 .width(120.0)
                 .show_ui(ui, |ui| {
-                    tools::build_menu(ui, &mut self.launch.selected);
+                    ui.build_menu(&mut self.launch.selected);
                 });
         });
         let force_close_button = ui.add_sized(
@@ -113,7 +113,7 @@ impl App {
     }
 
     fn show_session_section(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
-        tools::header(ui, "Session");
+        ui.header("Session");
         ui.add_enabled_ui(!self.empty_session.disabled, |ui| {
             ui.horizontal(|ui| {
                 if ui.button("Empty current session").clicked() {
@@ -144,7 +144,7 @@ impl App {
     }
 
     fn show_network_section(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
-        tools::header(ui, "Network");
+        ui.header("Network");
         egui::Frame::new()
             .outer_margin(egui::vec2(0.0, -2.0))
             .show(ui, |ui| {
@@ -152,12 +152,10 @@ impl App {
                     let label = ui.horizontal(|ui| {
                         let label = ui.label("Game's network access");
                         ui.add_space(1.0);
-                        ui.add(
-                            egui::Image::new(egui::include_image!("../../assets/circle.svg"))
-                                .max_size([4.0, 4.0].into())
-                                .tint(self.game_networking.blocked_status.to_color32()),
-                        )
-                        .on_hover_text("This turns yellow if GTA Tools\ncannot find your game.");
+                        ui.create_indicator_dot(self.game_networking.blocked_status.to_color32())
+                            .on_hover_text(
+                                "This turns yellow if GTA Tools\ncannot find your game.",
+                            );
                         self.game_networking.if_failed_return_to_boolean();
                         label
                     });
@@ -198,7 +196,7 @@ impl App {
             egui::ComboBox::from_id_salt("Theme")
                 .selected_text(self.settings.theme.to_string())
                 .show_ui(ui, |ui| {
-                    tools::build_menu(ui, &mut self.settings.theme);
+                    ui.build_menu(&mut self.settings.theme);
                 });
             if selection != self.settings.theme {
                 catppuccin_egui::set_theme(ctx, self.settings.theme.into());
