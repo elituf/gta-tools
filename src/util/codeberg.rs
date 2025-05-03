@@ -1,3 +1,4 @@
+use nyquest::{ClientBuilder, blocking::Request};
 use semver::Version;
 
 const APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
@@ -20,12 +21,12 @@ impl Default for Release {
 
 pub fn get_latest_release() -> Option<Release> {
     let request_url = format!("{CODEBERG_ENDPOINT_ROOT}/repos/futile/gta-tools/releases/latest");
-    let ureq: ureq::Agent = ureq::Agent::config_builder()
+    let client = ClientBuilder::default()
         .user_agent(APP_USER_AGENT)
-        .build()
-        .into();
-    let mut response = ureq.get(request_url).call().ok()?;
-    let json = response.body_mut().read_json::<serde_json::Value>().ok()?;
+        .build_blocking()
+        .unwrap();
+    let response = client.request(Request::get(request_url)).unwrap();
+    let json = serde_json::from_slice::<serde_json::Value>(&response.bytes().unwrap()).unwrap();
     let tag_name = json["tag_name"].as_str()?;
     let browser_download_url = json["assets"][0]["browser_download_url"].as_str()?;
     Some(Release {
