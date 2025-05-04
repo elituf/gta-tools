@@ -1,7 +1,8 @@
 use std::{env, path::PathBuf, sync::LazyLock};
 
-pub static APP_STORAGE_PATH: LazyLock<PathBuf> =
-    LazyLock::new(|| PathBuf::from(env::var("LOCALAPPDATA").unwrap()).join("GTA Tools"));
+pub static APP_STORAGE_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
+    PathBuf::from(env::var("LOCALAPPDATA").unwrap_or_else(|_| String::from("."))).join("GTA Tools")
+});
 
 pub mod game {
     pub const EXE_ENHANCED: &str = "GTA5_Enhanced.exe";

@@ -44,7 +44,7 @@ impl ForceClose {
         *self = Self::default();
     }
 
-    fn finish_current_frame(&mut self) {
+    const fn finish_current_frame(&mut self) {
         if self.current_frame {
             self.current_frame = false;
         }

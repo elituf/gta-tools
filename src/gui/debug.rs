@@ -37,7 +37,7 @@ impl App {
             ui.horizontal(|ui| {
                 ui.label("blocked_status");
                 egui::ComboBox::from_id_salt("blocked_status")
-                    .selected_text(&self.game_networking.blocked_status.to_string())
+                    .selected_text(self.game_networking.blocked_status.to_string())
                     .show_ui(ui, |ui| {
                         ui.build_menu(&mut self.game_networking.blocked_status);
                     });
