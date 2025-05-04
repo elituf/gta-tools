@@ -1230,11 +1230,13 @@ dependencies = [
 
 [[package]]
 name = "nyquest"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbec44acc8915e966540e83c40b4d57134a861ea2f519e6a7ab883bfbbc7ddaa"
+checksum = "3a4722c65afdcbb836197802c2f5dc050825964bebbd9802086e54aef39208b0"
 dependencies = [
  "nyquest-interface",
+ "serde",
+ "serde_json",
  "thiserror 2.0.12",
 ]
 

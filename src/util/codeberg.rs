@@ -26,7 +26,7 @@ pub fn get_latest_release() -> Option<Release> {
         .build_blocking()
         .unwrap();
     let response = client.request(Request::get(request_url)).unwrap();
-    let json = serde_json::from_slice::<serde_json::Value>(&response.bytes().unwrap()).unwrap();
+    let json = response.json::<serde_json::Value>().ok()?;
     let tag_name = json["tag_name"].as_str()?;
     let browser_download_url = json["assets"][0]["browser_download_url"].as_str()?;
     Some(Release {
