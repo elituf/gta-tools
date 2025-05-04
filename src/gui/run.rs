@@ -3,7 +3,7 @@ use crate::{
         app::{App, WINDOW_SIZE},
         tools,
     },
-    util::{self, consts::APP_STORAGE_PATH, persistent_state::PersistentState},
+    util::{consts::APP_STORAGE_PATH, persistent_state::PersistentState, win},
 };
 use eframe::egui;
 use std::{
@@ -23,7 +23,7 @@ fn panic_hook(panic_info: &std::panic::PanicHookInfo<'_>) {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_secs();
-    let backtrace = std::backtrace::Backtrace::force_capture();
+    let backtrace = std::backtrace::Backtrace::capture();
     let message = format!("[{timestamp}]\n{panic_info}\nstack backtrace:\n{backtrace}\n");
     file.write_all(message.as_bytes()).unwrap();
 }
@@ -36,7 +36,7 @@ fn app_creator(
     // initialize http client (nyquest) for windows
     nyquest_backend_winrt::register();
     // initialize App early to modify some things before returning it
-    let mut app = Box::<App>::default();
+    let mut app = Box::new(App::default());
     // load previously selected launch platform & settings from persistent state
     if let Some(persistent_state) = PersistentState::get() {
         app.launch.selected = persistent_state.launcher;
@@ -44,7 +44,7 @@ fn app_creator(
     }
     // check if we're elevated. if not, and the user wants an elevated launch - relaunch elevated
     if !app.flags.elevated && app.settings.start_elevated {
-        util::win::elevate(util::win::ElevationExitMethod::Forced);
+        win::elevate(win::ElevationExitMethod::Forced);
     }
     // refresh sysinfo because it initializes with nothing
     app.sysinfo.refresh_all();
