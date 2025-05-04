@@ -1,5 +1,6 @@
 use nyquest::{ClientBuilder, blocking::Request};
 use semver::Version;
+use serde::Deserialize;
 
 const APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 const CODEBERG_ENDPOINT_ROOT: &str = "https://codeberg.org/api/v1";
@@ -13,10 +14,21 @@ pub struct Release {
 impl Default for Release {
     fn default() -> Self {
         Self {
-            version: Version::parse(env!("CARGO_PKG_VERSION")).unwrap(),
+            version: Version::new(0, 0, 0),
             download_url: String::new(),
         }
     }
+}
+
+#[derive(Deserialize)]
+struct LatestRelease {
+    tag_name: String,
+    assets: Vec<Asset>,
+}
+
+#[derive(Deserialize)]
+struct Asset {
+    browser_download_url: String,
 }
 
 pub fn get_latest_release() -> Option<Release> {
@@ -26,11 +38,11 @@ pub fn get_latest_release() -> Option<Release> {
         .build_blocking()
         .unwrap();
     let response = client.request(Request::get(request_url)).unwrap();
-    let json = response.json::<serde_json::Value>().ok()?;
-    let tag_name = json["tag_name"].as_str()?;
-    let browser_download_url = json["assets"][0]["browser_download_url"].as_str()?;
+    let json = response.json::<LatestRelease>().ok()?;
+    let tag_name = json.tag_name;
+    let browser_download_url = &json.assets[0].browser_download_url;
     Some(Release {
-        version: Version::parse(tag_name).expect("expected a valid semver pattern"),
-        download_url: String::from(browser_download_url),
+        version: Version::parse(&tag_name).ok()?,
+        download_url: browser_download_url.to_owned(),
     })
 }
