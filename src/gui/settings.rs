@@ -2,8 +2,9 @@ use crate::util::win;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumIter};
 
-#[derive(Clone, Copy, Debug, Display, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
+#[derive(Clone, Copy, Debug, Default, Display, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
 pub enum Theme {
+    #[default]
     #[strum(to_string = "Auto")]
     Auto,
     #[strum(to_string = "Catppuccin Latte")]
@@ -34,17 +35,8 @@ impl From<Theme> for catppuccin_egui::Theme {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Settings {
     pub theme: Theme,
     pub start_elevated: bool,
-}
-
-impl Default for Settings {
-    fn default() -> Self {
-        Self {
-            theme: Theme::Auto,
-            start_elevated: false,
-        }
-    }
 }
