@@ -1,6 +1,10 @@
 use crate::{
     features,
-    gui::{settings::Settings, tools, ui_ext::UiExt},
+    gui::{
+        settings::{Settings, Theme},
+        tools,
+        ui_ext::UiExt,
+    },
     util::{consts::game::WINDOW_TITLE, meta::Meta, persistent_state::PersistentState, win},
 };
 use eframe::egui;
@@ -199,6 +203,13 @@ impl App {
                     ui.build_menu(&mut self.settings.theme);
                 });
             if selection != self.settings.theme {
+                catppuccin_egui::set_theme(ctx, self.settings.theme.into());
+            }
+            if ui
+                .add_visible(self.settings.theme == Theme::Auto, egui::Button::new("⟲"))
+                .on_hover_text("Refresh theme")
+                .clicked()
+            {
                 catppuccin_egui::set_theme(ctx, self.settings.theme.into());
             }
         });

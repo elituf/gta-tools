@@ -50,10 +50,12 @@ fn app_creator(
     app.sysinfo.refresh_all();
     // enable image loading support in egui
     egui_extras::install_image_loaders(&cc.egui_ctx);
-    // set our initial theme, from earlier loaded settings
+    // set our initial theme, from earlier loaded settings. we set the egui theme
+    // to dark here to work around system theme based switching of the egui style
+    cc.egui_ctx.set_theme(egui::Theme::Dark);
     catppuccin_egui::set_theme(&cc.egui_ctx, app.settings.theme.into());
     // apply some global styling that we like
-    cc.egui_ctx.style_mut(|style| {
+    cc.egui_ctx.all_styles_mut(|style| {
         style.spacing.item_spacing = egui::vec2(4.0, 4.0);
         style.interaction.selectable_labels = false;
     });

@@ -1,8 +1,11 @@
+use crate::util::win;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumIter};
 
 #[derive(Clone, Copy, Debug, Display, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
 pub enum Theme {
+    #[strum(to_string = "Auto")]
+    Auto,
     #[strum(to_string = "Catppuccin Latte")]
     CatppuccinLatte,
     #[strum(to_string = "Catppuccin Frappe")]
@@ -16,6 +19,13 @@ pub enum Theme {
 impl From<Theme> for catppuccin_egui::Theme {
     fn from(val: Theme) -> Self {
         match val {
+            Theme::Auto => {
+                if win::is_system_theme_dark() {
+                    catppuccin_egui::MOCHA
+                } else {
+                    catppuccin_egui::LATTE
+                }
+            }
             Theme::CatppuccinLatte => catppuccin_egui::LATTE,
             Theme::CatppuccinFrappe => catppuccin_egui::FRAPPE,
             Theme::CatppuccinMacchiato => catppuccin_egui::MACCHIATO,
@@ -33,7 +43,7 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            theme: Theme::CatppuccinMocha,
+            theme: Theme::Auto,
             start_elevated: false,
         }
     }

@@ -83,3 +83,17 @@ pub fn is_elevated() -> bool {
         result.is_ok() && elevation.TokenIsElevated != 0
     }
 }
+
+pub fn is_system_theme_dark() -> bool {
+    use winreg::RegKey;
+    let hkcu = RegKey::predef(winreg::enums::HKEY_CURRENT_USER);
+    let Ok(subkey) =
+        hkcu.open_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize")
+    else {
+        return true;
+    };
+    let Ok(dword): Result<u32, std::io::Error> = subkey.get_value("AppsUseLightTheme") else {
+        return true;
+    };
+    dword != 1
+}
