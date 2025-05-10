@@ -755,7 +755,7 @@ dependencies = [
 
 [[package]]
 name = "gta-tools"
-version = "0.5.4"
+version = "0.6.0"
 dependencies = [
  "catppuccin-egui",
  "eframe",
