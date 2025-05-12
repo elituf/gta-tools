@@ -2,11 +2,7 @@
 
 A toolset of convenient things for GTA V Online.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://i.vgy.me/aQ1qgw.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://i.vgy.me/OrzaR8.png">
-  <img>
-</picture>
+![](https://i.vgy.me/aQ1qgw.png) ![](https://i.vgy.me/OrzaR8.png) 
 
 ## Installing
 
