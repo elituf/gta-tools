@@ -1,13 +1,9 @@
-use crate::{features::launch::Platform, gui::settings::Settings, util::consts::APP_STORAGE_PATH};
+use crate::{features::launch::Platform, gui::settings::Settings, util::consts::path};
 use serde::{Deserialize, Serialize};
 use std::{
     fs::{self, File},
     io::Write,
-    path::PathBuf,
-    sync::LazyLock,
 };
-
-static CONFIG_PATH: LazyLock<PathBuf> = LazyLock::new(|| APP_STORAGE_PATH.join("config.json"));
 
 #[derive(Serialize, Deserialize)]
 pub struct PersistentState {
@@ -17,13 +13,13 @@ pub struct PersistentState {
 
 impl PersistentState {
     pub fn get() -> Option<Self> {
-        fs::read_to_string(CONFIG_PATH.as_path())
+        fs::read_to_string(path::APP_CONFIG.as_path())
             .ok()
             .and_then(|config| serde_json::from_str::<Self>(&config).ok())
     }
 
     pub fn set(&self) {
-        let config_path = CONFIG_PATH.as_path();
+        let config_path = path::APP_CONFIG.as_path();
         let config_path_parent = config_path.parent().unwrap();
         if !config_path_parent.exists() {
             fs::create_dir(config_path_parent).unwrap();

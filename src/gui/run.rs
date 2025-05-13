@@ -3,7 +3,7 @@ use crate::{
         app::{App, WINDOW_SIZE},
         tools,
     },
-    util::{consts::APP_STORAGE_PATH, persistent_state::PersistentState, win},
+    util::{consts::path, persistent_state::PersistentState, win},
 };
 use eframe::egui;
 use std::{
@@ -13,11 +13,10 @@ use std::{
 };
 
 fn panic_hook(panic_info: &std::panic::PanicHookInfo<'_>) {
-    let log_path = APP_STORAGE_PATH.join("panic.log");
     let mut file = File::options()
         .create(true)
         .append(true)
-        .open(log_path)
+        .open(path::APP_ERROR.as_path())
         .unwrap();
     let timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)

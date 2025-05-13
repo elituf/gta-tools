@@ -5,8 +5,8 @@ use crate::{
         ui_ext::UiExt,
     },
     util::consts::{
-        APP_STORAGE_PATH,
         game::{EXE_ENHANCED, EXE_LEGACY},
+        path,
     },
 };
 use eframe::egui;
@@ -15,7 +15,7 @@ impl App {
     fn add_debug_viewport_contents(&mut self, ui: &mut egui::Ui) {
         ui.collapsing("misc", |ui| {
             if ui.button("open storage path").clicked() {
-                open::that_detached(APP_STORAGE_PATH.as_path()).unwrap();
+                open::that_detached(path::APP_STORAGE.as_path()).unwrap();
             }
             ui.checkbox(
                 &mut self.meta.newer_version_available,
