@@ -31,18 +31,17 @@ struct Asset {
     browser_download_url: String,
 }
 
-pub fn get_latest_release() -> Option<Release> {
+pub fn get_latest_release() -> Result<Release, Box<dyn std::error::Error>> {
     let request_url = format!("{CODEBERG_ENDPOINT_ROOT}/repos/futile/gta-tools/releases/latest");
     let client = ClientBuilder::default()
         .user_agent(APP_USER_AGENT)
-        .build_blocking()
-        .unwrap();
-    let response = client.request(Request::get(request_url)).unwrap();
-    let json = response.json::<LatestRelease>().ok()?;
+        .build_blocking()?;
+    let response = client.request(Request::get(request_url))?;
+    let json = response.json::<LatestRelease>()?;
     let tag_name = json.tag_name;
     let browser_download_url = &json.assets[0].browser_download_url;
-    Some(Release {
-        version: Version::parse(&tag_name).ok()?,
+    Ok(Release {
+        version: Version::parse(&tag_name)?,
         download_url: browser_download_url.to_owned(),
     })
 }
