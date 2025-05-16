@@ -5,7 +5,7 @@ pub mod path {
             .join("GTA Tools")
     });
     pub static APP_CONFIG: LazyLock<PathBuf> = LazyLock::new(|| APP_STORAGE.join("config.json"));
-    pub static APP_ERROR: LazyLock<PathBuf> = LazyLock::new(|| APP_STORAGE.join("error.log"));
+    pub static APP_LOG: LazyLock<PathBuf> = LazyLock::new(|| APP_STORAGE.join("gta-tools.log"));
 }
 
 pub mod game {

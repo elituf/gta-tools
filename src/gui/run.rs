@@ -3,28 +3,14 @@ use crate::{
         app::{App, WINDOW_SIZE},
         tools,
     },
-    util::{consts::path, persistent_state::PersistentState, win},
+    util::{log, persistent_state::PersistentState, win},
 };
 use eframe::egui;
-use std::{
-    fs::File,
-    io::Write,
-    time::{SystemTime, UNIX_EPOCH},
-};
 
 fn panic_hook(panic_info: &std::panic::PanicHookInfo<'_>) {
-    let mut file = File::options()
-        .create(true)
-        .append(true)
-        .open(path::APP_ERROR.as_path())
-        .unwrap();
-    let timestamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
     let backtrace = std::backtrace::Backtrace::capture();
-    let message = format!("[{timestamp}]\n{panic_info}\nstack backtrace:\n{backtrace}\n");
-    file.write_all(message.as_bytes()).unwrap();
+    let message = format!("{panic_info}\nstack backtrace:\n{backtrace}\n");
+    log::log(log::LogLevel::Panic, message);
 }
 
 fn app_creator(
