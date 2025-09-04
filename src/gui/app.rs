@@ -205,13 +205,6 @@ impl App {
             if selection != self.settings.theme {
                 catppuccin_egui::set_theme(ctx, self.settings.theme.into());
             }
-            if ui
-                .add_visible(self.settings.theme == Theme::Auto, egui::Button::new("⟲"))
-                .on_hover_text("Refresh theme")
-                .clicked()
-            {
-                catppuccin_egui::set_theme(ctx, self.settings.theme.into());
-            }
         });
         ui.checkbox(&mut self.settings.start_elevated, "Always start elevated");
     }

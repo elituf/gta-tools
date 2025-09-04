@@ -42,6 +42,12 @@ impl App {
                         ui.build_menu(&mut self.game_networking.blocked_status);
                     });
             });
+            if ui
+                .add(egui::Button::new("force refresh theme"))
+                .clicked()
+            {
+                catppuccin_egui::set_theme(ui.ctx(), self.settings.theme.into());
+            }
         });
         ui.collapsing("anti afk", |ui| {
             ui.label(format!(
