@@ -18,8 +18,6 @@ fn app_creator(
 ) -> Result<Box<dyn eframe::App>, Box<dyn std::error::Error + Send + Sync>> {
     // use our own panic hook which logs all panics to a file
     std::panic::set_hook(Box::new(panic_hook));
-    // initialize http client (nyquest) for windows
-    nyquest_backend_winrt::register();
     // initialize App early to modify some things before returning it
     let mut app = Box::new(App::default());
     // load previously selected launch platform & settings from persistent state
