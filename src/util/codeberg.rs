@@ -1,5 +1,6 @@
 use semver::Version;
 use serde::Deserialize;
+use std::time::Duration;
 
 const APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 const CODEBERG_ENDPOINT_ROOT: &str = "https://codeberg.org/api/v1";
@@ -32,7 +33,12 @@ struct Asset {
 
 pub fn get_latest_release() -> Result<Release, Box<dyn std::error::Error>> {
     let request_url = format!("{CODEBERG_ENDPOINT_ROOT}/repos/futile/gta-tools/releases/latest");
-    let mut response = ureq::get(request_url).header("User-Agent", APP_USER_AGENT).call()?;
+    let mut response = ureq::get(request_url)
+        .config()
+        .timeout_global(Some(Duration::from_secs(10)))
+        .user_agent(APP_USER_AGENT)
+        .build()
+        .call()?;
     let body = response.body_mut();
     let json = body.read_json::<LatestRelease>()?;
     let tag_name = json.tag_name;

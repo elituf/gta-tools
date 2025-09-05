@@ -10,7 +10,7 @@ use eframe::egui;
 fn panic_hook(panic_info: &std::panic::PanicHookInfo<'_>) {
     let backtrace = std::backtrace::Backtrace::capture();
     let message = format!("{panic_info}\nstack backtrace:\n{backtrace}\n");
-    log::log(log::LogLevel::Panic, message);
+    log::log(log::LogLevel::Panic, &message);
 }
 
 fn app_creator(

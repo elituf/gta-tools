@@ -8,7 +8,7 @@ pub enum LogLevel {
     Panic,
 }
 
-pub fn log(level: LogLevel, message: String) {
+pub fn log(level: LogLevel, message: &str) {
     let mut file = File::options()
         .create(true)
         .append(true)
