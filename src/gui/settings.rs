@@ -3,6 +3,13 @@ use serde::{Deserialize, Serialize};
 use strum::{Display, EnumIter};
 
 #[derive(Clone, Copy, Debug, Default, Display, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
+pub enum LaunchVersion {
+    #[default]
+    Enhanced,
+    Legacy,
+}
+
+#[derive(Clone, Copy, Debug, Default, Display, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
 pub enum Theme {
     #[default]
     #[strum(to_string = "Auto")]
@@ -37,6 +44,7 @@ impl From<Theme> for catppuccin_egui::Theme {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Settings {
+    pub launch_version: LaunchVersion,
     pub theme: Theme,
     pub start_elevated: bool,
 }

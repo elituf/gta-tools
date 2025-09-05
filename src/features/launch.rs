@@ -1,3 +1,4 @@
+use crate::gui::settings::LaunchVersion;
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, process::Command};
 use strum::{Display, EnumIter};
@@ -18,16 +19,24 @@ pub struct Launch {
     pub selected: Platform,
 }
 
-pub fn launch(platform: &Platform) {
+pub fn launch(platform: &Platform, version: &LaunchVersion) {
     match platform {
         Platform::Steam => {
-            let _ = open::that_detached("steam://run/3240220");
+            let steam_url = if *version == LaunchVersion::Enhanced {
+                "steam://run/3240220"
+            } else {
+                "steam://run/271590"
+            };
+            let _ = open::that_detached(steam_url);
         }
         Platform::Rockstar => {
             let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
-            let Ok(gta_v_enhanced) =
-                hklm.open_subkey(r"SOFTWARE\WOW6432Node\Rockstar Games\GTAV Enhanced")
-            else {
+            let rockstar_url = if *version == LaunchVersion::Enhanced {
+                r"SOFTWARE\WOW6432Node\Rockstar Games\GTAV Enhanced"
+            } else {
+                r"SOFTWARE\WOW6432Node\Rockstar Games\Grand Theft Auto V"
+            };
+            let Ok(gta_v_enhanced) = hklm.open_subkey(rockstar_url) else {
                 return;
             };
             let Ok(install_folder): Result<String, std::io::Error> =
@@ -40,9 +49,12 @@ pub fn launch(platform: &Platform) {
             let _ = Command::new(play_gtav_path).spawn();
         }
         Platform::Epic => {
-            let _ = open::that_detached(
-                "com.epicgames.launcher://apps/331226ba7c944720baa99103cb1fe80c?action=launch&silent=true",
-            );
+            let epic_url = if *version == LaunchVersion::Enhanced {
+                "com.epicgames.launcher://apps/8769e24080ea413b8ebca3f1b8c50951?action=launch&silent=true"
+            } else {
+                "com.epicgames.launcher://apps/9d2d0eb64d5c44529cece33fe2a46482?action=launch&silent=true"
+            };
+            let _ = open::that_detached(epic_url);
         }
     }
 }

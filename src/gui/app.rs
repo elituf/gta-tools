@@ -95,7 +95,7 @@ impl App {
         ui.header("Game");
         ui.horizontal(|ui| {
             if ui.button("Launch").clicked() {
-                features::launch::launch(&self.launch.selected);
+                features::launch::launch(&self.launch.selected, &self.settings.launch_version);
             }
             egui::ComboBox::from_id_salt("Launch")
                 .selected_text(self.launch.selected.to_string())
@@ -190,6 +190,14 @@ impl App {
     }
 
     fn show_settings_stage(&mut self, ctx: &egui::Context, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            ui.label("Launch version");
+            egui::ComboBox::from_id_salt("Launch version")
+                .selected_text(self.settings.launch_version.to_string())
+                .show_ui(ui, |ui| {
+                    ui.build_menu(&mut self.settings.launch_version);
+                });
+        });
         ui.horizontal(|ui| {
             let selection = self.settings.theme;
             ui.label("Theme");
