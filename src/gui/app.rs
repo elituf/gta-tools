@@ -1,6 +1,6 @@
 use crate::{
     features,
-    gui::{settings::Settings, tools, ui_ext::UiExt},
+    gui::{colours, settings::Settings, tools, ui_ext::UiExt},
     util::{consts::game::WINDOW_TITLE, meta::Meta, persistent_state::PersistentState, win},
 };
 use eframe::egui;
@@ -219,8 +219,11 @@ impl App {
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = 0.0;
                     ui.label("with ");
+                    ui.style_mut().visuals.hyperlink_color = colours::RED;
                     ui.hyperlink_to("❤", "https://codeberg.org/futile/gta-tools");
                     ui.label(" from ");
+                    ui.style_mut().visuals.hyperlink_color =
+                        catppuccin_egui::Theme::from(self.settings.theme).text;
                     ui.hyperlink_to("futile", "https://futile.eu");
                 });
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
