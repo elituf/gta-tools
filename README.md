@@ -14,7 +14,7 @@ You will need the Rust toolchain, which can be obtained [here](https://rustup.rs
 
 ## Guide
 
-Almost every[^1] feature of GTA Tools is Legacy/Enhanced-agnostic. Some functionality of GTA Tools requires administrator access. If necessary, GTA Tools can either be started as admin manually, or, the user can simply use the <kbd>Elevate</kbd> button to relaunch GTA Tools as admin.
+Every feature of GTA Tools is Legacy/Enhanced-agnostic. Some functionality of GTA Tools requires administrator access. If necessary, GTA Tools can either be started as admin manually, or, the user can simply use the <kbd>Elevate</kbd> button to relaunch GTA Tools as admin.
 
 It is recommended to use an up-to-date version of GTA Tools from [releases](https://codeberg.org/futile/gta-tools/releases). You can check for updates to your existing installation by going to the <kbd>About</kbd> page of GTA Tools and hovering the <kbd>↓</kbd> button near the version number.
 
@@ -22,7 +22,7 @@ It is recommended to use an up-to-date version of GTA Tools from [releases](http
 
 This section is quite simple.
 
-There is a <kbd>Launch</kbd>[^1] feature, which will start your game on the chosen launcher (I am unsure if launching Epic Games works, let me know).
+There is a <kbd>Launch</kbd>[^1] feature, which will start your game on the chosen launcher and game version.
 
 There is also a <kbd>Force close game</kbd> feature, which simply kills all game processes. This *does not* touch Rockstar Games Launcher or any other processes, only ones named `GTA5_Enhanced.exe` or `GTA5.exe`.
 
@@ -38,8 +38,8 @@ The first being <kbd>Empty current session</kbd>, which "removes everyone" from 
 
 The other feature is <kbd>Anti AFK</kbd>, which, when toggled, prevents you from getting kicked for idling by pressing keys on your keyboard every 60 seconds. At present, those keys are `VK_NUMPAD4` & `VK_NUMPAD6`, due to being a relatively good balance of keys that the game actually registers but don't interrupt gameplay too much if they activate while you're playing. You *must* be tabbed into GTA V for <kbd>Anti AFK</kbd> to work. While toggled, <kbd>Anti AFK</kbd> will only activate when all of the following conditions are true:
 * The `Grand Theft Auto V` window is currently focused
-* None of the designated keys are currently being pressed[^2]
-* The mouse cursor is not currently visible[^3]
+* None of the designated keys are currently being pressed[^1]
+* The mouse cursor is not currently visible[^2]
 
 #### Network
 
@@ -56,6 +56,5 @@ This feature is primarily useful for **replay glitching**, which is an exploit t
 5. At this point, <kbd>Unblock</kbd> the game's internet access and load back into online
 6. Finally, spend any amount of money, and you should receive the finale cut, but also be able to go play the finale again immediately
 
-[^1]: <kbd>Launch</kbd> only launches Enhanced installations of the game.
-[^2]: Otherwise, if you are, for example, using those keys to fly a plane, <kbd>Anti AFK</kbd> activating could cancel the input.
-[^3]: Specifically, the Windows mouse cursor, not the in-game mouse cursor. This check is mostly used to prevent typing while you are in the Rockstar overlay.
+[^1]: Otherwise, if you are, for example, using those keys to fly a plane, <kbd>Anti AFK</kbd> activating could cancel the input.
+[^2]: Specifically, the Windows mouse cursor, not the in-game mouse cursor. This check is mostly used to prevent typing while you are in the Rockstar overlay.
