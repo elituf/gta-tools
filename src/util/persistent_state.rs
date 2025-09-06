@@ -19,12 +19,7 @@ impl PersistentState {
     }
 
     pub fn set(&self) {
-        let config_path = path::APP_CONFIG.as_path();
-        let config_path_parent = config_path.parent().unwrap();
-        if !config_path_parent.exists() {
-            fs::create_dir(config_path_parent).unwrap();
-        }
-        let mut config_file = File::create(config_path).unwrap();
+        let mut config_file = File::create(path::APP_CONFIG.as_path()).unwrap();
         let json = serde_json::to_string_pretty(&self).unwrap();
         config_file.write_all(json.as_bytes()).unwrap();
     }

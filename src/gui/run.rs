@@ -3,21 +3,13 @@ use crate::{
         app::{App, WINDOW_SIZE},
         tools,
     },
-    util::{log, persistent_state::PersistentState, win},
+    util::{persistent_state::PersistentState, win},
 };
 use eframe::egui;
-
-fn panic_hook(panic_info: &std::panic::PanicHookInfo<'_>) {
-    let backtrace = std::backtrace::Backtrace::capture();
-    let message = format!("{panic_info}\nstack backtrace:\n{backtrace}\n");
-    log::log(log::LogLevel::Panic, &message);
-}
 
 fn app_creator(
     cc: &eframe::CreationContext<'_>,
 ) -> Result<Box<dyn eframe::App>, Box<dyn std::error::Error + Send + Sync>> {
-    // use our own panic hook which logs all panics to a file
-    std::panic::set_hook(Box::new(panic_hook));
     // initialize App early to modify some things before returning it
     let mut app = Box::new(App::default());
     // load previously selected launch platform & settings from persistent state
