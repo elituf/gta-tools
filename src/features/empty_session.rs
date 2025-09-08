@@ -48,23 +48,23 @@ unsafe extern "system" {
     unsafe fn NtResumeProcess(ProcessHandle: HANDLE) -> NTSTATUS;
 }
 
-fn get_gta_pid(sysinfo: &mut System) -> u32 {
+fn get_gta_pid(sysinfo: &mut System) -> Option<u32> {
     sysinfo.refresh_all();
     if let Some((pid, _)) = sysinfo
         .processes()
         .iter()
         .find(|(_, p)| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
     {
-        return pid.as_u32();
+        return Some(pid.as_u32());
+    } else {
+        return None;
     }
-    u32::MAX
 }
 
 pub fn activate(game_handle: &mut HANDLE, sysinfo: &mut System) {
-    let pid = get_gta_pid(sysinfo);
-    if pid == u32::MAX {
+    let Some(pid) = get_gta_pid(sysinfo) else {
         return;
-    }
+    };
     unsafe {
         *game_handle = OpenProcess(PROCESS_SUSPEND_RESUME, false, pid).unwrap();
         let _ = NtSuspendProcess(*game_handle);
