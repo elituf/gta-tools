@@ -221,19 +221,28 @@ impl App {
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = 0.0;
                     ui.label("with ");
-                    ui.style_mut().visuals.hyperlink_color = colours::RED;
-                    ui.hyperlink_to("❤", "https://codeberg.org/futile/gta-tools");
+                    ui.scope(|ui| {
+                        ui.style_mut().visuals.hyperlink_color = colours::RED;
+                        ui.hyperlink_to("❤", "https://codeberg.org/futile/gta-tools");
+                    });
                     ui.label(" from ");
-                    ui.style_mut().visuals.hyperlink_color =
-                        catppuccin_egui::Theme::from(self.settings.theme).text;
                     ui.hyperlink_to("futile", "https://futile.eu");
                 });
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    ui.label(format!(
-                        "v{} {}",
-                        env!("CARGO_PKG_VERSION"),
-                        if cfg!(debug_assertions) { "(dev)" } else { "" }
-                    ));
+                    if cfg!(debug_assertions) {
+                        ui.label("(dev)");
+                    }
+                    ui.label(format!("v{}", env!("CARGO_PKG_VERSION")));
+                    ui.scope(|ui| {
+                        ui.style_mut().spacing.button_padding = egui::Vec2::new(3.0, 0.0);
+                        let button = ui
+                            .button("⬇")
+                            .on_hover_text("Go to current latest version.");
+                        if button.clicked() {
+                            let _ =
+                                open::that("https://codeberg.org/futile/gta-tools/releases/latest");
+                        }
+                    });
                 });
             });
             ui.add(egui::Image::new(egui::include_image!(

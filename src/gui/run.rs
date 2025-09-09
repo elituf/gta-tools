@@ -33,6 +33,7 @@ fn app_creator(
     cc.egui_ctx.all_styles_mut(|style| {
         style.spacing.item_spacing = egui::vec2(4.0, 4.0);
         style.interaction.selectable_labels = false;
+        style.visuals.hyperlink_color = catppuccin_egui::Theme::from(app.settings.theme).text;
     });
     // load any extra fonts that we need
     let mut fonts = egui::FontDefinitions::default();
