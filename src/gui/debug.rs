@@ -17,11 +17,6 @@ impl App {
             if ui.button("open storage path").clicked() {
                 open::that_detached(path::APP_STORAGE.as_path()).unwrap();
             }
-            ui.checkbox(
-                &mut self.meta.newer_version_available,
-                "spoof new version available",
-            )
-            .on_hover_text("(this could already be checked if\nthere actually IS a new version)");
             ui.scope(|ui| {
                 use windows::Win32::UI::WindowsAndMessaging::{
                     GetForegroundWindow, GetWindowTextW,
@@ -42,10 +37,7 @@ impl App {
                         ui.build_menu(&mut self.game_networking.blocked_status);
                     });
             });
-            if ui
-                .add(egui::Button::new("force refresh theme"))
-                .clicked()
-            {
+            if ui.add(egui::Button::new("force refresh theme")).clicked() {
                 catppuccin_egui::set_theme(ui.ctx(), self.settings.theme.into());
             }
         });

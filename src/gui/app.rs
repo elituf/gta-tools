@@ -1,7 +1,7 @@
 use crate::{
     features,
     gui::{colours, settings::Settings, tools, ui_ext::UiExt},
-    util::{consts::game::WINDOW_TITLE, meta::Meta, persistent_state::PersistentState, win},
+    util::{consts::game::WINDOW_TITLE, persistent_state::PersistentState, win},
 };
 use eframe::egui;
 use std::time::{Duration, Instant};
@@ -36,7 +36,6 @@ impl Default for Flags {
 
 #[derive(Debug, Default)]
 pub struct App {
-    pub meta: Meta,
     pub settings: Settings,
     stage: Stage,
     pub flags: Flags,
@@ -232,21 +231,9 @@ impl App {
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(format!(
                         "v{} {}",
-                        self.meta.current_version,
+                        env!("CARGO_PKG_VERSION"),
                         if cfg!(debug_assertions) { "(dev)" } else { "" }
                     ));
-                    let button = ui.add_enabled_ui(self.meta.newer_version_available, |ui| {
-                        ui.style_mut().spacing.button_padding = egui::Vec2::new(3.0, 0.0);
-                        ui.button("⬇")
-                            .on_disabled_hover_text("Already up to date.")
-                            .on_hover_text(format!(
-                                "New version available! ({})",
-                                self.meta.latest_release.version
-                            ))
-                    });
-                    if button.inner.clicked() {
-                        open::that(&self.meta.latest_release.download_url).unwrap();
-                    }
                 });
             });
             ui.add(egui::Image::new(egui::include_image!(
