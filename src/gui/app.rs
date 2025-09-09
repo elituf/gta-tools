@@ -117,9 +117,12 @@ impl App {
         ui.add_enabled_ui(!self.empty_session.disabled, |ui| {
             ui.horizontal(|ui| {
                 if ui.button("Empty current session").clicked() {
-                    self.empty_session.interval = Instant::now();
-                    self.empty_session.disabled = true;
-                    features::empty_session::activate(&mut self.game_handle, &mut self.sysinfo);
+                    if features::empty_session::activate(&mut self.game_handle, &mut self.sysinfo)
+                        .is_ok()
+                    {
+                        self.empty_session.interval = Instant::now();
+                        self.empty_session.disabled = true;
+                    }
                 }
                 ui.label(&self.empty_session.countdown.i_string);
             });

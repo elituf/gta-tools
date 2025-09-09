@@ -1,4 +1,7 @@
-use crate::util::consts::game::{EXE_ENHANCED, EXE_LEGACY};
+use crate::util::{
+    consts::game::{EXE_ENHANCED, EXE_LEGACY},
+    log,
+};
 use std::time::{Duration, Instant};
 use sysinfo::System;
 
@@ -58,7 +61,12 @@ fn activate(sysinfo: &mut System) {
         .iter()
         .filter(|(_, p)| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
         .for_each(|(_, p)| {
-            p.kill();
+            if p.kill() == false {
+                log::log(
+                    log::LogLevel::Error,
+                    "failed to force close game, probably due to access denied",
+                );
+            }
         });
     sysinfo.refresh_all();
 }

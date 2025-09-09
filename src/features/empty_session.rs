@@ -1,6 +1,7 @@
 use crate::util::{
     consts::game::{EXE_ENHANCED, EXE_LEGACY},
     countdown::Countdown,
+    log,
 };
 use std::time::{Duration, Instant};
 use sysinfo::System;
@@ -61,14 +62,22 @@ fn get_gta_pid(sysinfo: &mut System) -> Option<u32> {
     }
 }
 
-pub fn activate(game_handle: &mut HANDLE, sysinfo: &mut System) {
+pub fn activate(game_handle: &mut HANDLE, sysinfo: &mut System) -> Result<(), ()> {
     let Some(pid) = get_gta_pid(sysinfo) else {
-        return;
+        return Err(());
     };
     unsafe {
-        *game_handle = OpenProcess(PROCESS_SUSPEND_RESUME, false, pid).unwrap();
+        match OpenProcess(PROCESS_SUSPEND_RESUME, false, pid) {
+            Ok(handle) => *game_handle = handle,
+            Err(why) => {
+                let message = format!("failed to suspend game for empty session:\n{why}");
+                log::log(log::LogLevel::Error, &message);
+                return Err(());
+            }
+        }
         let _ = NtSuspendProcess(*game_handle);
     }
+    Ok(())
 }
 
 pub fn deactivate(game_handle: &mut HANDLE) {
