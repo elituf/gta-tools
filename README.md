@@ -56,5 +56,11 @@ This feature is primarily useful for **replay glitching**, which is an exploit t
 5. At this point, <kbd>Unblock</kbd> the game's internet access and load back into online
 6. Finally, spend any amount of money, and you should receive the finale cut, but also be able to go play the finale again immediately
 
+## Issues
+
+- I have noticed that on my current Windows 10 install, when not elevated (administrator), the <kbd>Force close game</kbd> and <kbd>Empty current session</kbd> features can fail due to being denied access. This was tested by other people and is not guaranteed to happen. If this does happen to you, I recommend using GTA Tools always in elevated mode. Check "Always start elevated" in the Settings tab.
+
+
+
 [^1]: Otherwise, if you are, for example, using those keys to fly a plane, <kbd>Anti AFK</kbd> activating could cancel the input.
 [^2]: Specifically, the Windows mouse cursor, not the in-game mouse cursor. This check is mostly used to prevent typing while you are in the Rockstar overlay.
