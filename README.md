@@ -24,7 +24,7 @@ This section is quite simple.
 
 There is a <kbd>Launch</kbd> feature, which will start your game on the chosen launcher and game version.
 
-There is also a <kbd>Force close game</kbd> feature, which simply kills all game processes. This *does not* touch Rockstar Games Launcher or any other processes, only ones named `GTA5_Enhanced.exe` or `GTA5.exe`.
+There is also a <kbd>Force close game</kbd> feature, which simply kills all game processes. This button requires a second press after the first one for confirmation. This *does not* touch Rockstar Games Launcher or any other processes, only ones named `GTA5_Enhanced.exe` or `GTA5.exe`.
 
 #### Session
 
