@@ -9,7 +9,7 @@ mod util;
 
 fn init_storage() {
     if !crate::util::consts::path::APP_STORAGE.exists() {
-        std::fs::create_dir(crate::util::consts::path::APP_STORAGE.as_path()).unwrap();
+        std::fs::create_dir_all(crate::util::consts::path::APP_STORAGE.as_path()).unwrap();
     }
 }
 
