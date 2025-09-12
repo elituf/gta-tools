@@ -18,26 +18,26 @@ use windows::{
 };
 
 #[derive(Clone, Debug)]
-struct Process {
+pub struct Process {
     pid: u32,
     name: String,
     exe: Option<PathBuf>,
 }
 
 impl Process {
-    fn pid(&self) -> u32 {
+    pub fn pid(&self) -> u32 {
         self.pid
     }
 
-    fn name(&self) -> &str {
+    pub fn name(&self) -> &str {
         &self.name
     }
 
-    fn exe(&self) -> Option<&Path> {
+    pub fn exe(&self) -> Option<&Path> {
         self.exe.as_deref()
     }
 
-    fn kill(&self) -> bool {
+    pub fn kill(&self) -> bool {
         let mut taskkill = Command::new("taskkill.exe");
         taskkill.creation_flags(CREATE_NO_WINDOW.0);
         taskkill.arg("/F").arg("/PID").arg(&self.pid.to_string());
@@ -48,20 +48,14 @@ impl Process {
     }
 }
 
-#[derive(Debug)]
-struct SystemInfo {
+#[derive(Debug, Default)]
+pub struct SystemInfo {
     processes: Vec<Process>,
 }
 
 impl SystemInfo {
-    fn new() -> Self {
-        Self {
-            processes: Vec::new(),
-        }
-    }
-
     // TODO: unfuck this retarded function
-    fn refresh(&mut self) {
+    pub fn refresh(&mut self) {
         let mut processes = Vec::new();
         let snapshot_handle = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0).unwrap() };
         let mut process_entry = PROCESSENTRY32::default();
@@ -136,7 +130,7 @@ impl SystemInfo {
         self.processes = processes;
     }
 
-    fn processes(&self) -> &[Process] {
+    pub fn processes(&self) -> &[Process] {
         &self.processes
     }
 }

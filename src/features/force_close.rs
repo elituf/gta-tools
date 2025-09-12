@@ -1,9 +1,9 @@
 use crate::util::{
     consts::game::{EXE_ENHANCED, EXE_LEGACY},
     log,
+    system_info::SystemInfo,
 };
 use std::time::{Duration, Instant};
-use sysinfo::System;
 
 const INTERVAL: Duration = Duration::from_secs(3);
 
@@ -27,7 +27,7 @@ impl Default for ForceClose {
 }
 
 impl ForceClose {
-    pub fn prompt(&mut self, force_close_button_clicked: bool, sysinfo: &mut System) {
+    pub fn prompt(&mut self, force_close_button_clicked: bool, system_info: &mut SystemInfo) {
         if force_close_button_clicked && !self.counting {
             self.button_text = "Are you sure?".to_owned();
             self.timer = Instant::now();
@@ -37,7 +37,7 @@ impl ForceClose {
         if self.counting && self.timer.elapsed() >= INTERVAL {
             self.reset();
         } else if force_close_button_clicked && !self.current_frame {
-            activate(sysinfo);
+            activate(system_info);
             self.reset();
         }
         self.finish_current_frame();
@@ -54,13 +54,13 @@ impl ForceClose {
     }
 }
 
-fn activate(sysinfo: &mut System) {
-    sysinfo.refresh_all();
-    sysinfo
+fn activate(system_info: &mut SystemInfo) {
+    system_info.refresh();
+    system_info
         .processes()
         .iter()
-        .filter(|(_, p)| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
-        .for_each(|(_, p)| {
+        .filter(|p| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
+        .for_each(|p| {
             if p.kill() == false {
                 log::log(
                     log::LogLevel::Error,
@@ -68,5 +68,5 @@ fn activate(sysinfo: &mut System) {
                 );
             }
         });
-    sysinfo.refresh_all();
+    system_info.refresh();
 }

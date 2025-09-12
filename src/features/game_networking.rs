@@ -1,10 +1,12 @@
-use crate::util::consts::game::{EXE_ENHANCED, EXE_LEGACY};
+use crate::util::{
+    consts::game::{EXE_ENHANCED, EXE_LEGACY},
+    system_info::SystemInfo,
+};
 use std::{
     path::Path,
     time::{Duration, Instant},
 };
 use strum::{Display, EnumIter};
-use sysinfo::System;
 use windows::{
     Win32::{
         NetworkManagement::WindowsFirewall::{
@@ -71,8 +73,8 @@ impl Drop for GameNetworking {
 }
 
 impl GameNetworking {
-    pub fn block_all(&mut self, sysinfo: &mut System) {
-        let Some(exe_path) = get_game_exe_path(sysinfo) else {
+    pub fn block_all(&mut self, system_info: &mut SystemInfo) {
+        let Some(exe_path) = get_game_exe_path(system_info) else {
             self.blocked_status = BlockedStatus::Failed;
             return;
         };
@@ -133,12 +135,12 @@ impl GameNetworking {
     }
 }
 
-fn get_game_exe_path(sysinfo: &mut System) -> Option<&Path> {
-    sysinfo.refresh_all();
-    if let Some((_, process)) = sysinfo
+fn get_game_exe_path(system_info: &mut SystemInfo) -> Option<&Path> {
+    system_info.refresh();
+    if let Some(process) = system_info
         .processes()
         .iter()
-        .find(|(_, p)| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
+        .find(|p| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
     {
         process.exe()
     } else {

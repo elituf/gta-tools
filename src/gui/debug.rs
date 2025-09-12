@@ -48,19 +48,16 @@ impl App {
             ));
             ui.label(format!("can activate: {}", self.anti_afk.can_activate()));
         });
-        ui.collapsing("sysinfo", |ui| {
-            if ui.button("refresh all").clicked() {
-                self.sysinfo.refresh_all();
+        ui.collapsing("system info", |ui| {
+            if ui.button("refresh").clicked() {
+                self.system_info.refresh();
             }
             let pid = self
-                .sysinfo
+                .system_info
                 .processes()
                 .iter()
-                .find(|(_, p)| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
-                .map_or_else(
-                    || "no pid found!".to_owned(),
-                    |(pid, _)| pid.as_u32().to_string(),
-                );
+                .find(|p| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
+                .map_or_else(|| "no pid found!".to_owned(), |p| p.pid().to_string());
             ui.label(format!("gta pid: {pid}"));
         });
         ui.collapsing("app state", |ui| ui.label(format!("{self:#?}")));

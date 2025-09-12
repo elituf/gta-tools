@@ -1,7 +1,9 @@
 use crate::{
     features,
     gui::{colours, settings::Settings, tools, ui_ext::UiExt},
-    util::{consts::game::WINDOW_TITLE, persistent_state::PersistentState, win},
+    util::{
+        consts::game::WINDOW_TITLE, persistent_state::PersistentState, system_info::SystemInfo, win,
+    },
 };
 use eframe::egui;
 use std::time::{Duration, Instant};
@@ -39,7 +41,7 @@ pub struct App {
     pub settings: Settings,
     stage: Stage,
     pub flags: Flags,
-    pub sysinfo: sysinfo::System,
+    pub system_info: SystemInfo,
     game_handle: windows::Win32::Foundation::HANDLE,
     pub anti_afk: features::anti_afk::AntiAfk,
     empty_session: features::empty_session::EmptySession,
@@ -108,7 +110,7 @@ impl App {
             egui::Button::new(&self.force_close.button_text),
         );
         self.force_close
-            .prompt(force_close_button.clicked(), &mut self.sysinfo);
+            .prompt(force_close_button.clicked(), &mut self.system_info);
     }
 
     fn show_session_section(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
@@ -116,8 +118,11 @@ impl App {
         ui.add_enabled_ui(!self.empty_session.disabled, |ui| {
             ui.horizontal(|ui| {
                 if ui.button("Empty current session").clicked() {
-                    if features::empty_session::activate(&mut self.game_handle, &mut self.sysinfo)
-                        .is_ok()
+                    if features::empty_session::activate(
+                        &mut self.game_handle,
+                        &mut self.system_info,
+                    )
+                    .is_ok()
                     {
                         self.empty_session.interval = Instant::now();
                         self.empty_session.disabled = true;
@@ -169,7 +174,7 @@ impl App {
                             .add_sized([button_width, 18.0], egui::Button::new("Block"))
                             .clicked()
                         {
-                            self.game_networking.block_all(&mut self.sysinfo);
+                            self.game_networking.block_all(&mut self.system_info);
                         }
                         if ui
                             .add_sized([button_width, 18.0], egui::Button::new("Unblock"))

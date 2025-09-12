@@ -21,8 +21,8 @@ fn app_creator(
     if !app.flags.elevated && app.settings.start_elevated {
         win::elevate(win::ElevationExitMethod::Forced);
     }
-    // refresh sysinfo because it initializes with nothing
-    app.sysinfo.refresh_all();
+    // refresh system info because it initializes with nothing
+    app.system_info.refresh();
     // enable image loading support in egui
     egui_extras::install_image_loaders(&cc.egui_ctx);
     // set our initial theme, from earlier loaded settings. we set the egui theme

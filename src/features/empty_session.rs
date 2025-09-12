@@ -2,9 +2,9 @@ use crate::util::{
     consts::game::{EXE_ENHANCED, EXE_LEGACY},
     countdown::Countdown,
     log,
+    system_info::SystemInfo,
 };
 use std::time::{Duration, Instant};
-use sysinfo::System;
 use windows::Win32::{
     Foundation::{CloseHandle, HANDLE, NTSTATUS},
     System::Threading::{OpenProcess, PROCESS_SUSPEND_RESUME},
@@ -49,21 +49,21 @@ unsafe extern "system" {
     unsafe fn NtResumeProcess(ProcessHandle: HANDLE) -> NTSTATUS;
 }
 
-fn get_gta_pid(sysinfo: &mut System) -> Option<u32> {
-    sysinfo.refresh_all();
-    if let Some((pid, _)) = sysinfo
+fn get_gta_pid(system_info: &mut SystemInfo) -> Option<u32> {
+    system_info.refresh();
+    if let Some(p) = system_info
         .processes()
         .iter()
-        .find(|(_, p)| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
+        .find(|p| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
     {
-        return Some(pid.as_u32());
+        return Some(p.pid());
     } else {
         return None;
     }
 }
 
-pub fn activate(game_handle: &mut HANDLE, sysinfo: &mut System) -> Result<(), ()> {
-    let Some(pid) = get_gta_pid(sysinfo) else {
+pub fn activate(game_handle: &mut HANDLE, system_info: &mut SystemInfo) -> Result<(), ()> {
+    let Some(pid) = get_gta_pid(system_info) else {
         return Err(());
     };
     unsafe {
