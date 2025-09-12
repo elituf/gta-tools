@@ -54,73 +54,20 @@ pub struct SystemInfo {
 }
 
 impl SystemInfo {
-    // TODO: unfuck this retarded function
     pub fn refresh(&mut self) {
         let mut processes = Vec::new();
         let snapshot_handle = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0).unwrap() };
         let mut process_entry = PROCESSENTRY32::default();
         process_entry.dwSize = size_of::<PROCESSENTRY32>() as u32;
         unsafe { Process32First(snapshot_handle, &mut process_entry).unwrap() };
-        let process_handle_result = unsafe {
-            OpenProcess(
-                PROCESS_QUERY_LIMITED_INFORMATION,
-                false,
-                process_entry.th32ProcessID,
-            )
-        };
-        let mut exename = [0u16; 260];
-        let mut dwsize = exename.len() as u32;
-        let exe_full_path = if let Ok(process_handle) = process_handle_result {
-            let image_name_result = unsafe {
-                QueryFullProcessImageNameW(
-                    process_handle,
-                    PROCESS_NAME_WIN32,
-                    PWSTR(exename.as_mut_ptr()),
-                    &mut dwsize,
-                )
-            };
-            match image_name_result {
-                Ok(_) => Some(PathBuf::from(
-                    unsafe { PWSTR(exename.as_mut_ptr()).to_string() }.unwrap(),
-                )),
-                Err(_) => None,
-            }
-        } else {
-            None
-        };
+        let exe_full_path = get_exe_full_path(process_entry);
         processes.push(Process {
             pid: process_entry.th32ProcessID,
             name: c_char_arr_to_string(&process_entry.szExeFile),
             exe: exe_full_path,
         });
         while unsafe { Process32Next(snapshot_handle, &mut process_entry) }.is_ok() {
-            let process_handle_result = unsafe {
-                OpenProcess(
-                    PROCESS_QUERY_LIMITED_INFORMATION,
-                    false,
-                    process_entry.th32ProcessID,
-                )
-            };
-            let mut exename = [0u16; 260];
-            let mut dwsize = exename.len() as u32;
-            let exe_full_path = if let Ok(process_handle) = process_handle_result {
-                let image_name_result = unsafe {
-                    QueryFullProcessImageNameW(
-                        process_handle,
-                        PROCESS_NAME_WIN32,
-                        PWSTR(exename.as_mut_ptr()),
-                        &mut dwsize,
-                    )
-                };
-                match image_name_result {
-                    Ok(_) => Some(PathBuf::from(
-                        unsafe { PWSTR(exename.as_mut_ptr()).to_string() }.unwrap(),
-                    )),
-                    Err(_) => None,
-                }
-            } else {
-                None
-            };
+            let exe_full_path = get_exe_full_path(process_entry);
             processes.push(Process {
                 pid: process_entry.th32ProcessID,
                 name: c_char_arr_to_string(&process_entry.szExeFile),
@@ -133,6 +80,35 @@ impl SystemInfo {
     pub fn processes(&self) -> &[Process] {
         &self.processes
     }
+}
+
+fn get_exe_full_path(process_entry: PROCESSENTRY32) -> Option<PathBuf> {
+    let process_handle_result = unsafe {
+        OpenProcess(
+            PROCESS_QUERY_LIMITED_INFORMATION,
+            false,
+            process_entry.th32ProcessID,
+        )
+    };
+    let mut exename = [0u16; 260];
+    let mut dwsize = exename.len() as u32;
+    let exe_full_path = process_handle_result.map_or(None, |process_handle| {
+        let image_name_result = unsafe {
+            QueryFullProcessImageNameW(
+                process_handle,
+                PROCESS_NAME_WIN32,
+                PWSTR(exename.as_mut_ptr()),
+                &mut dwsize,
+            )
+        };
+        match image_name_result {
+            Ok(_) => Some(PathBuf::from(
+                unsafe { PWSTR(exename.as_mut_ptr()).to_string() }.unwrap(),
+            )),
+            Err(_) => None,
+        }
+    });
+    exe_full_path
 }
 
 fn c_char_arr_to_string(arr: &[i8]) -> String {
