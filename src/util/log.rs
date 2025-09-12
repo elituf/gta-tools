@@ -2,7 +2,7 @@ use crate::util::consts::path;
 use std::{fs::File, io::Write};
 use strum::Display;
 
-#[derive(Display)]
+#[derive(Clone, Copy, Display)]
 pub enum LogLevel {
     Error,
     Panic,

@@ -61,7 +61,7 @@ fn activate(system_info: &mut SystemInfo) {
         .iter()
         .filter(|p| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
         .for_each(|p| {
-            if p.kill() == false {
+            if !p.kill() {
                 log::log(
                     log::LogLevel::Error,
                     "failed to force close game, probably due to access denied",

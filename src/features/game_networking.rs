@@ -137,13 +137,9 @@ impl GameNetworking {
 
 fn get_game_exe_path(system_info: &mut SystemInfo) -> Option<&Path> {
     system_info.refresh();
-    if let Some(process) = system_info
+    system_info
         .processes()
         .iter()
         .find(|p| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
-    {
-        process.exe()
-    } else {
-        None
-    }
+        .and_then(|p| p.exe())
 }

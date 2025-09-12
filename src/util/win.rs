@@ -26,7 +26,7 @@ pub fn is_cursor_visible() -> bool {
         ..Default::default()
     };
     unsafe {
-        GetCursorInfo(&mut ci).unwrap();
+        GetCursorInfo(&raw mut ci).unwrap();
     }
     ci.flags == CURSOR_SHOWING
 }
@@ -67,7 +67,7 @@ pub fn elevate(closing: ElevationExitMethod) {
 pub fn is_elevated() -> bool {
     let mut token: HANDLE = HANDLE::default();
     unsafe {
-        if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token).is_err() {
+        if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &raw mut token).is_err() {
             return false;
         }
         let mut elevation = TOKEN_ELEVATION::default();
@@ -77,7 +77,7 @@ pub fn is_elevated() -> bool {
             TokenElevation,
             Some((&raw mut elevation).cast()),
             size,
-            &mut size,
+            &raw mut size,
         );
         CloseHandle(token).unwrap();
         result.is_ok() && elevation.TokenIsElevated != 0

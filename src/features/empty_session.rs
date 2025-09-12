@@ -51,15 +51,11 @@ unsafe extern "system" {
 
 fn get_gta_pid(system_info: &mut SystemInfo) -> Option<u32> {
     system_info.refresh();
-    if let Some(p) = system_info
+    system_info
         .processes()
         .iter()
         .find(|p| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
-    {
-        return Some(p.pid());
-    } else {
-        return None;
-    }
+        .map(|p| p.pid())
 }
 
 pub fn activate(game_handle: &mut HANDLE, system_info: &mut SystemInfo) -> Result<(), ()> {
