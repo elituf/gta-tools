@@ -1,4 +1,5 @@
 use std::{
+    ffi::c_char,
     os::windows::process::CommandExt,
     path::{Path, PathBuf},
     process::Command,
@@ -112,7 +113,7 @@ fn get_exe_full_path(process_entry: &PROCESSENTRY32) -> Option<PathBuf> {
     })
 }
 
-fn c_char_arr_to_string(arr: &[i8]) -> String {
+fn c_char_arr_to_string(arr: &[c_char]) -> String {
     arr.iter()
         .take_while(|&&b| b != 0)
         .map(|&b| b as u8 as char)
