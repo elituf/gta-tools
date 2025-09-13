@@ -57,12 +57,12 @@ pub struct SystemInfo {
 impl SystemInfo {
     pub fn refresh(&mut self) {
         let mut processes = Vec::new();
-        let snapshot_handle = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0).unwrap() };
+        let snapshot_handle = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) }.unwrap();
         let mut process_entry = PROCESSENTRY32 {
             dwSize: size_of::<PROCESSENTRY32>() as u32,
             ..Default::default()
         };
-        unsafe { Process32First(snapshot_handle, &raw mut process_entry).unwrap() };
+        unsafe { Process32First(snapshot_handle, &raw mut process_entry) }.unwrap();
         let exe_full_path = get_exe_full_path(&process_entry);
         processes.push(Process {
             pid: process_entry.th32ProcessID,
@@ -93,21 +93,15 @@ fn get_exe_full_path(process_entry: &PROCESSENTRY32) -> Option<PathBuf> {
             process_entry.th32ProcessID,
         )
     };
-    let mut exename = [0u16; 260];
-    let mut dwsize = exename.len() as u32;
     process_handle_result.map_or(None, |process_handle| {
+        let mut exename = [0u16; 260];
+        let mut dwsize = exename.len() as u32;
+        let exename = PWSTR(exename.as_mut_ptr());
         let image_name_result = unsafe {
-            QueryFullProcessImageNameW(
-                process_handle,
-                PROCESS_NAME_WIN32,
-                PWSTR(exename.as_mut_ptr()),
-                &raw mut dwsize,
-            )
+            QueryFullProcessImageNameW(process_handle, PROCESS_NAME_WIN32, exename, &raw mut dwsize)
         };
         match image_name_result {
-            Ok(()) => Some(PathBuf::from(
-                unsafe { PWSTR(exename.as_mut_ptr()).to_string() }.unwrap(),
-            )),
+            Ok(()) => Some(PathBuf::from(unsafe { exename.to_string() }.unwrap())),
             Err(_) => None,
         }
     })
