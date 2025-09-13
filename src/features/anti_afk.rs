@@ -42,7 +42,7 @@ impl AntiAfk {
 fn send(vk_codes: &[VIRTUAL_KEY]) {
     let mut inputs = Vec::new();
     for &vk_code in vk_codes {
-        let scan_code = unsafe { MapVirtualKeyW(u32::from(vk_code.0), MAPVK_VK_TO_VSC) as u16 };
+        let scan_code = unsafe { MapVirtualKeyW(u32::from(vk_code.0), MAPVK_VK_TO_VSC) } as u16;
         for event in [KEYBD_EVENT_FLAGS(0), KEYEVENTF_KEYUP] {
             let mut input = INPUT {
                 r#type: INPUT_KEYBOARD,

@@ -21,10 +21,10 @@ impl App {
                 use windows::Win32::UI::WindowsAndMessaging::{
                     GetForegroundWindow, GetWindowTextW,
                 };
-                let mut buffer = [0; 512];
-                let current_title = unsafe {
-                    let hwnd = GetForegroundWindow();
-                    let length = GetWindowTextW(hwnd, &mut buffer);
+                let current_title = {
+                    let mut buffer = [0; 512];
+                    let hwnd = unsafe { GetForegroundWindow() };
+                    let length = unsafe { GetWindowTextW(hwnd, &mut buffer) };
                     String::from_utf16_lossy(&buffer[..length as usize])
                 };
                 ui.label(format!("focused: \"{current_title}\""));

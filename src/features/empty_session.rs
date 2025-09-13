@@ -62,25 +62,21 @@ pub fn activate(game_handle: &mut HANDLE, system_info: &mut SystemInfo) -> Resul
     let Some(pid) = get_gta_pid(system_info) else {
         return Err(());
     };
-    unsafe {
-        match OpenProcess(PROCESS_SUSPEND_RESUME, false, pid) {
-            Ok(handle) => *game_handle = handle,
-            Err(why) => {
-                let message = format!("failed to suspend game for empty session:\n{why}");
-                log::log(log::LogLevel::Error, &message);
-                return Err(());
-            }
+    match unsafe { OpenProcess(PROCESS_SUSPEND_RESUME, false, pid) } {
+        Ok(handle) => *game_handle = handle,
+        Err(why) => {
+            let message = format!("failed to suspend game for empty session:\n{why}");
+            log::log(log::LogLevel::Error, &message);
+            return Err(());
         }
-        let _ = NtSuspendProcess(*game_handle);
     }
+    let _ = unsafe { NtSuspendProcess(*game_handle) };
     Ok(())
 }
 
 pub fn deactivate(game_handle: &mut HANDLE) {
-    unsafe {
-        if !game_handle.is_invalid() {
-            let _ = NtResumeProcess(*game_handle);
-            let _ = CloseHandle(*game_handle);
-        }
+    if !game_handle.is_invalid() {
+        let _ = unsafe { NtResumeProcess(*game_handle) };
+        let _ = unsafe { CloseHandle(*game_handle) };
     }
 }

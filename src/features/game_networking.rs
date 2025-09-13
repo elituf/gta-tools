@@ -64,10 +64,8 @@ impl Default for GameNetworking {
 
 impl Drop for GameNetworking {
     fn drop(&mut self) {
-        unsafe {
-            if self.com_initialized {
-                CoUninitialize();
-            }
+        if self.com_initialized {
+            unsafe { CoUninitialize() };
         }
     }
 }
@@ -79,44 +77,42 @@ impl GameNetworking {
             return;
         };
         let policy: INetFwPolicy2 =
-            unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER).unwrap() };
-        let rules = unsafe { policy.Rules().unwrap() };
+            unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER) }.unwrap();
+        let rules = unsafe { policy.Rules() }.unwrap();
         let exe_path = BSTR::from(exe_path.to_string_lossy().to_string());
         for filter in [
             (FILTER_NAME_IN, NET_FW_RULE_DIR_IN),
             (FILTER_NAME_OUT, NET_FW_RULE_DIR_OUT),
         ] {
             let _ = unsafe { rules.Remove(&BSTR::from(filter.0)) };
-            unsafe {
-                let rule: INetFwRule =
-                    CoCreateInstance(&NetFwRule, None, CLSCTX_INPROC_SERVER).unwrap();
-                rule.SetName(&BSTR::from(filter.0)).unwrap();
-                rule.SetApplicationName(&exe_path).unwrap();
-                rule.SetDirection(filter.1).unwrap();
-                rule.SetEnabled(true.into()).unwrap();
-                rule.SetAction(NET_FW_ACTION_BLOCK).unwrap();
-                rule.SetProtocol(NET_FW_IP_PROTOCOL_ANY.0).unwrap();
-                rules.Add(&rule).unwrap();
-            }
+            let rule: INetFwRule =
+                unsafe { CoCreateInstance(&NetFwRule, None, CLSCTX_INPROC_SERVER) }.unwrap();
+            unsafe { rule.SetName(&BSTR::from(filter.0)) }.unwrap();
+            unsafe { rule.SetApplicationName(&exe_path) }.unwrap();
+            unsafe { rule.SetDirection(filter.1) }.unwrap();
+            unsafe { rule.SetEnabled(true.into()) }.unwrap();
+            unsafe { rule.SetAction(NET_FW_ACTION_BLOCK) }.unwrap();
+            unsafe { rule.SetProtocol(NET_FW_IP_PROTOCOL_ANY.0) }.unwrap();
+            unsafe { rules.Add(&rule) }.unwrap();
         }
         self.blocked_status = Self::is_blocked().into();
     }
 
     pub fn unblock_all(&mut self) {
         let policy: INetFwPolicy2 =
-            unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER).unwrap() };
-        let rules = unsafe { policy.Rules().unwrap() };
-        unsafe { rules.Remove(&BSTR::from(FILTER_NAME_IN)).unwrap() };
-        unsafe { rules.Remove(&BSTR::from(FILTER_NAME_OUT)).unwrap() };
+            unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER) }.unwrap();
+        let rules = unsafe { policy.Rules() }.unwrap();
+        unsafe { rules.Remove(&BSTR::from(FILTER_NAME_IN)) }.unwrap();
+        unsafe { rules.Remove(&BSTR::from(FILTER_NAME_OUT)) }.unwrap();
         self.blocked_status = Self::is_blocked().into();
     }
 
     fn is_blocked() -> bool {
         let policy: INetFwPolicy2 =
-            unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER).unwrap() };
-        let rules = unsafe { policy.Rules().unwrap() };
-        let in_rule_exists = unsafe { rules.Item(&BSTR::from(FILTER_NAME_IN)).is_ok() };
-        let out_rule_exists = unsafe { rules.Item(&BSTR::from(FILTER_NAME_OUT)).is_ok() };
+            unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER) }.unwrap();
+        let rules = unsafe { policy.Rules() }.unwrap();
+        let in_rule_exists = unsafe { rules.Item(&BSTR::from(FILTER_NAME_IN)) }.is_ok();
+        let out_rule_exists = unsafe { rules.Item(&BSTR::from(FILTER_NAME_OUT)) }.is_ok();
         in_rule_exists || out_rule_exists
     }
 

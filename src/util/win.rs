@@ -25,25 +25,21 @@ pub fn is_cursor_visible() -> bool {
         cbSize: u32::try_from(std::mem::size_of::<CURSORINFO>()).unwrap(),
         ..Default::default()
     };
-    unsafe {
-        GetCursorInfo(&raw mut ci).unwrap();
-    }
+    unsafe { GetCursorInfo(&raw mut ci) }.unwrap();
     ci.flags == CURSOR_SHOWING
 }
 
 pub fn is_window_focused(target_title: &str) -> bool {
     let mut buffer = [0; 512];
-    unsafe {
-        let hwnd = GetForegroundWindow();
-        let length = GetWindowTextW(hwnd, &mut buffer);
-        let current_title = String::from_utf16_lossy(&buffer[..length as usize]);
-        current_title == target_title
-    }
+    let hwnd = unsafe { GetForegroundWindow() };
+    let length = unsafe { GetWindowTextW(hwnd, &mut buffer) };
+    let current_title = String::from_utf16_lossy(&buffer[..length as usize]);
+    current_title == target_title
 }
 
 pub fn is_any_key_pressed(keys: &[VIRTUAL_KEY]) -> bool {
     keys.iter()
-        .any(|&key| unsafe { (GetAsyncKeyState(i32::from(key.0)) & i16::MIN) != 0 })
+        .any(|&key| unsafe { GetAsyncKeyState(i32::from(key.0)) } & i16::MIN != 0)
 }
 
 pub fn elevate(closing: ElevationExitMethod) {
@@ -66,22 +62,22 @@ pub fn elevate(closing: ElevationExitMethod) {
 
 pub fn is_elevated() -> bool {
     let mut token: HANDLE = HANDLE::default();
-    unsafe {
-        if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &raw mut token).is_err() {
-            return false;
-        }
-        let mut elevation = TOKEN_ELEVATION::default();
-        let mut size = u32::try_from(std::mem::size_of::<TOKEN_ELEVATION>()).unwrap();
-        let result = GetTokenInformation(
+    if unsafe { OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &raw mut token) }.is_err() {
+        return false;
+    }
+    let mut elevation = TOKEN_ELEVATION::default();
+    let mut size = u32::try_from(std::mem::size_of::<TOKEN_ELEVATION>()).unwrap();
+    let result = unsafe {
+        GetTokenInformation(
             token,
             TokenElevation,
             Some((&raw mut elevation).cast()),
             size,
             &raw mut size,
-        );
-        CloseHandle(token).unwrap();
-        result.is_ok() && elevation.TokenIsElevated != 0
-    }
+        )
+    };
+    unsafe { CloseHandle(token) }.unwrap();
+    result.is_ok() && elevation.TokenIsElevated != 0
 }
 
 pub fn is_system_theme_dark() -> bool {
