@@ -1,13 +1,13 @@
 use std::{
-    ffi::c_char,
-    os::windows::process::CommandExt,
+    ffi::{OsStr, OsString},
+    os::windows::{ffi::OsStringExt, process::CommandExt},
     path::{Path, PathBuf},
     process::Command,
 };
 use windows::{
     Win32::System::{
         Diagnostics::ToolHelp::{
-            CreateToolhelp32Snapshot, PROCESSENTRY32, Process32First, Process32Next,
+            CreateToolhelp32Snapshot, PROCESSENTRY32W, Process32FirstW, Process32NextW,
             TH32CS_SNAPPROCESS,
         },
         Threading::{
@@ -21,7 +21,7 @@ use windows::{
 #[derive(Clone, Debug)]
 pub struct Process {
     pid: u32,
-    name: String,
+    name: OsString,
     exe: Option<PathBuf>,
 }
 
@@ -30,7 +30,7 @@ impl Process {
         self.pid
     }
 
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> &OsStr {
         &self.name
     }
 
@@ -58,22 +58,22 @@ impl SystemInfo {
     pub fn refresh(&mut self) {
         let mut processes = Vec::new();
         let snapshot_handle = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) }.unwrap();
-        let mut process_entry = PROCESSENTRY32 {
-            dwSize: size_of::<PROCESSENTRY32>() as u32,
+        let mut process_entry = PROCESSENTRY32W {
+            dwSize: size_of::<PROCESSENTRY32W>() as u32,
             ..Default::default()
         };
-        unsafe { Process32First(snapshot_handle, &raw mut process_entry) }.unwrap();
+        unsafe { Process32FirstW(snapshot_handle, &raw mut process_entry) }.unwrap();
         let exe_full_path = get_exe_full_path(&process_entry);
         processes.push(Process {
             pid: process_entry.th32ProcessID,
-            name: c_char_arr_to_string(&process_entry.szExeFile),
+            name: wide_array_to_os_string(&process_entry.szExeFile),
             exe: exe_full_path,
         });
-        while unsafe { Process32Next(snapshot_handle, &raw mut process_entry) }.is_ok() {
+        while unsafe { Process32NextW(snapshot_handle, &raw mut process_entry) }.is_ok() {
             let exe_full_path = get_exe_full_path(&process_entry);
             processes.push(Process {
                 pid: process_entry.th32ProcessID,
-                name: c_char_arr_to_string(&process_entry.szExeFile),
+                name: wide_array_to_os_string(&process_entry.szExeFile),
                 exe: exe_full_path,
             });
         }
@@ -85,7 +85,7 @@ impl SystemInfo {
     }
 }
 
-fn get_exe_full_path(process_entry: &PROCESSENTRY32) -> Option<PathBuf> {
+fn get_exe_full_path(process_entry: &PROCESSENTRY32W) -> Option<PathBuf> {
     let process_handle_result = unsafe {
         OpenProcess(
             PROCESS_QUERY_LIMITED_INFORMATION,
@@ -94,22 +94,24 @@ fn get_exe_full_path(process_entry: &PROCESSENTRY32) -> Option<PathBuf> {
         )
     };
     process_handle_result.map_or(None, |process_handle| {
-        let mut exename = [0u16; 260];
-        let mut dwsize = exename.len() as u32;
-        let exename = PWSTR(exename.as_mut_ptr());
+        let mut exe_name = [0u16; 260];
+        let mut dw_size = exe_name.len() as u32;
         let image_name_result = unsafe {
-            QueryFullProcessImageNameW(process_handle, PROCESS_NAME_WIN32, exename, &raw mut dwsize)
+            QueryFullProcessImageNameW(
+                process_handle,
+                PROCESS_NAME_WIN32,
+                PWSTR(exe_name.as_mut_ptr()),
+                &raw mut dw_size,
+            )
         };
         match image_name_result {
-            Ok(()) => Some(PathBuf::from(unsafe { exename.to_string() }.unwrap())),
+            Ok(()) => Some(PathBuf::from(wide_array_to_os_string(&exe_name))),
             Err(_) => None,
         }
     })
 }
 
-fn c_char_arr_to_string(arr: &[c_char]) -> String {
-    arr.iter()
-        .take_while(|&&b| b != 0)
-        .map(|&b| b as u8 as char)
-        .collect()
+fn wide_array_to_os_string(wide: &[u16]) -> OsString {
+    let null_pos = wide.iter().position(|&x| x == 0).unwrap_or(wide.len());
+    OsString::from_wide(&wide[..null_pos])
 }
