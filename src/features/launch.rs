@@ -22,19 +22,17 @@ pub struct Launch {
 pub fn launch(platform: &Platform, version: &LaunchVersion) {
     match platform {
         Platform::Steam => {
-            let steam_url = if *version == LaunchVersion::Enhanced {
-                "steam://run/3240220"
-            } else {
-                "steam://run/271590"
+            let steam_url = match version {
+                LaunchVersion::Enhanced => "steam://run/3240220",
+                LaunchVersion::Legacy => "steam://run/271590",
             };
             let _ = open::that_detached(steam_url);
         }
         Platform::Rockstar => {
             let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
-            let rockstar_url = if *version == LaunchVersion::Enhanced {
-                r"SOFTWARE\WOW6432Node\Rockstar Games\GTAV Enhanced"
-            } else {
-                r"SOFTWARE\WOW6432Node\Rockstar Games\Grand Theft Auto V"
+            let rockstar_url = match version {
+                LaunchVersion::Enhanced => r"SOFTWARE\WOW6432Node\Rockstar Games\GTAV Enhanced",
+                LaunchVersion::Legacy => r"SOFTWARE\WOW6432Node\Rockstar Games\Grand Theft Auto V",
             };
             let Ok(gta_v_enhanced) = hklm.open_subkey(rockstar_url) else {
                 return;
@@ -49,10 +47,13 @@ pub fn launch(platform: &Platform, version: &LaunchVersion) {
             let _ = Command::new(play_gtav_path).spawn();
         }
         Platform::Epic => {
-            let epic_url = if *version == LaunchVersion::Enhanced {
-                "com.epicgames.launcher://apps/8769e24080ea413b8ebca3f1b8c50951?action=launch&silent=true"
-            } else {
-                "com.epicgames.launcher://apps/9d2d0eb64d5c44529cece33fe2a46482?action=launch&silent=true"
+            let epic_url = match version {
+                LaunchVersion::Enhanced => {
+                    "com.epicgames.launcher://apps/8769e24080ea413b8ebca3f1b8c50951?action=launch&silent=true"
+                }
+                LaunchVersion::Legacy => {
+                    "com.epicgames.launcher://apps/9d2d0eb64d5c44529cece33fe2a46482?action=launch&silent=true"
+                }
             };
             let _ = open::that_detached(epic_url);
         }
