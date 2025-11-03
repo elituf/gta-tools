@@ -2,12 +2,15 @@
 
 A toolset of convenient things for GTA V Online.
 
-![](https://i.vgy.me/9j6ZSO.png) ![](https://i.vgy.me/xJgskM.png) 
+<picture>
+    <source srcset="https://i.vgy.me/M4sOHh.png" media="(prefers-color-scheme: dark)">
+    <img src="https://i.vgy.me/mpO9uc.png">
+</picture>
 
 ## Installing
 
 **Option 1** — <ins>Download</ins>  
-Download the latest release [here](https://codeberg.org/futile/gta-tools/releases/download/latest/gta-tools.exe) and place it somewhere convenient for you, such as Documents. You could then make a shortcut titled "GTA Tools", and pin it to taskbar or Start.
+Download the latest release [here](https://github.com/elituf/gta-tools/releases/latest/download/gta-tools.exe) and place it somewhere convenient for you, such as Documents. You could then make a shortcut titled "GTA Tools", and pin it to taskbar or Start.
 
 **Option 2** — <ins>Build from source</ins>  
 You will need the Rust toolchain, which can be obtained [here](https://rustup.rs). Follow the instructions of its installer. Once you have Rust installed, clone this repo and navigate to it. At this point, you should probably `git checkout x.x.x`, where `x.x.x` is the latest tag. You can then run `cargo build --release`. Once you do that, you can use the binary located at `.\target\release\gta-tools.exe` in the same way as **Option 1**.
@@ -16,7 +19,7 @@ You will need the Rust toolchain, which can be obtained [here](https://rustup.rs
 
 Every feature of GTA Tools is Legacy/Enhanced-agnostic. Some functionality of GTA Tools requires administrator access. If necessary, GTA Tools can either be started as admin manually, or, the user can simply use the <kbd>Elevate</kbd> button to relaunch GTA Tools as admin.
 
-It is recommended to always use an up-to-date version of GTA Tools from [releases](https://codeberg.org/futile/gta-tools/releases). You can also easily access the current latest release by going to the <kbd>About</kbd> page of GTA Tools and clicking the <kbd>↓</kbd> button near the version number.
+It is recommended to always use an up-to-date version of GTA Tools from [releases](https://github.com/elituf/gta-tools/releases). You can also easily access the current latest release by going to the <kbd>About</kbd> page of GTA Tools and clicking the <kbd>↓</kbd> button near the version number.
 
 #### Game
 
