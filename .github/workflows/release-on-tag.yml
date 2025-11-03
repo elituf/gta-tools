@@ -1,0 +1,31 @@
+name: Create release for pushed tag
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  release-on-tag:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Create release
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "A release already exists for $TAG, skipping"
+          else
+            cargo build --release
+            prev_tag=$(gh release list --limit 100 --json tagName --jq '.[0].tagName')
+            notes="**Full Changelog**: https://github.com/${{ github.repository }}/compare/${prev_tag}...${TAG}"
+            gh release create "$TAG" target/release/gta-tools.exe \
+              --title "$TAG" \
+              --notes "$notes"
+          fi
