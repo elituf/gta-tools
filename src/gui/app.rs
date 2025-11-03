@@ -227,7 +227,7 @@ impl App {
                     ui.label("with ");
                     ui.scope(|ui| {
                         ui.style_mut().visuals.hyperlink_color = colours::RED;
-                        ui.hyperlink_to("❤", "https://codeberg.org/futile/gta-tools");
+                        ui.hyperlink_to("❤", "https://github.com/elituf/gta-tools");
                     });
                     ui.label(" from ");
                     ui.hyperlink_to("futile", "https://futile.eu");
@@ -244,7 +244,7 @@ impl App {
                             .on_hover_text("Go to current latest version.");
                         if button.clicked() {
                             let _ =
-                                open::that("https://codeberg.org/futile/gta-tools/releases/latest");
+                                open::that("https://github.com/elituf/gta-tools/releases/latest");
                         }
                     });
                 });
