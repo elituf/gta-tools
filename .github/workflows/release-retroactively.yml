@@ -1,0 +1,43 @@
+name: Create releases for existing tags
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release-retroactively:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Get tags and create release for each
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mapfile -t tags < <(git tag -l)
+          echo "${#tags[@]} tags found."
+          prev_tag=""
+          for tag in "${tags[@]}"; do
+            if gh release view "$tag" >/dev/null 2>&1; then
+              echo "A release already exists for $tag, skipping"
+            else
+              echo "Proceeding with tag $tag"
+              git checkout "$tag"
+              cargo build --release
+              if [ -n "$prev_tag" ]; then
+                notes="**Full Changelog**: https://github.com/${{ github.repository }}/compare/${prev_tag}...${tag}"
+              else
+                notes="**Full Changelog**: https://github.com/${{ github.repository }}/commits/${tag}"
+              fi
+              gh release create "$tag" target/release/gta-tools.exe \
+                --title "$tag" \
+                --notes "$notes"
+            fi
+            prev_tag="$tag"
+          done
