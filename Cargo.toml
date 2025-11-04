@@ -37,4 +37,4 @@ winreg = "0.55.0"
 
 [build-dependencies]
 static_vcruntime = "2.0.0"
-winresource = "0.1.23"
+tauri-winres = "0.3.3"
