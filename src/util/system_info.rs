@@ -26,7 +26,7 @@ pub struct Process {
 }
 
 impl Process {
-    pub fn pid(&self) -> u32 {
+    pub const fn pid(&self) -> u32 {
         self.pid
     }
 
