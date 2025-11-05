@@ -26,7 +26,7 @@ pub fn launch(platform: &Platform, version: &LaunchVersion) {
                 LaunchVersion::Enhanced => "steam://run/3240220",
                 LaunchVersion::Legacy => "steam://run/271590",
             };
-            let _ = open::that_detached(steam_url);
+            open::that_detached(steam_url).unwrap();
         }
         Platform::Rockstar => {
             let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
@@ -44,6 +44,7 @@ pub fn launch(platform: &Platform, version: &LaunchVersion) {
             };
             let mut play_gtav_path = PathBuf::from(install_folder);
             play_gtav_path.push("PlayGTAV.exe");
+            // ignoring `Result` because if it errors that means GTA isn't installed via Rockstar
             let _ = Command::new(play_gtav_path).spawn();
         }
         Platform::Epic => {
@@ -55,7 +56,7 @@ pub fn launch(platform: &Platform, version: &LaunchVersion) {
                     "com.epicgames.launcher://apps/9d2d0eb64d5c44529cece33fe2a46482?action=launch&silent=true"
                 }
             };
-            let _ = open::that_detached(epic_url);
+            open::that_detached(epic_url).unwrap();
         }
     }
 }

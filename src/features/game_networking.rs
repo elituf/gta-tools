@@ -84,7 +84,7 @@ impl GameNetworking {
             (FILTER_NAME_IN, NET_FW_RULE_DIR_IN),
             (FILTER_NAME_OUT, NET_FW_RULE_DIR_OUT),
         ] {
-            let _ = unsafe { rules.Remove(&BSTR::from(filter.0)) };
+            unsafe { rules.Remove(&BSTR::from(filter.0)) }.unwrap();
             let rule: INetFwRule =
                 unsafe { CoCreateInstance(&NetFwRule, None, CLSCTX_INPROC_SERVER) }.unwrap();
             unsafe { rule.SetName(&BSTR::from(filter.0)) }.unwrap();

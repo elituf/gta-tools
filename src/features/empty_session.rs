@@ -6,7 +6,7 @@ use crate::util::{
 };
 use std::time::{Duration, Instant};
 use windows::Win32::{
-    Foundation::{CloseHandle, HANDLE, NTSTATUS},
+    Foundation::{HANDLE, NTSTATUS},
     System::Threading::{OpenProcess, PROCESS_SUSPEND_RESUME},
 };
 
@@ -70,13 +70,12 @@ pub fn activate(game_handle: &mut HANDLE, system_info: &mut SystemInfo) -> Resul
             return Err(());
         }
     }
-    let _ = unsafe { NtSuspendProcess(*game_handle) };
+    unsafe { NtSuspendProcess(*game_handle) }.unwrap();
     Ok(())
 }
 
 pub fn deactivate(game_handle: &mut HANDLE) {
     if !game_handle.is_invalid() {
-        let _ = unsafe { NtResumeProcess(*game_handle) };
-        let _ = unsafe { CloseHandle(*game_handle) };
+        unsafe { NtResumeProcess(*game_handle) }.unwrap();
     }
 }

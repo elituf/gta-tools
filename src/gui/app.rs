@@ -243,8 +243,8 @@ impl App {
                             .button("⬇")
                             .on_hover_text("Go to current latest version.");
                         if button.clicked() {
-                            let _ =
-                                open::that("https://github.com/elituf/gta-tools/releases/latest");
+                            open::that("https://github.com/elituf/gta-tools/releases/latest")
+                                .unwrap();
                         }
                     });
                 });
