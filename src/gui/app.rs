@@ -236,7 +236,8 @@ impl App {
                     if cfg!(debug_assertions) {
                         ui.label("(dev)");
                     }
-                    ui.label(format!("v{}", env!("CARGO_PKG_VERSION")));
+                    ui.label(format!("v{}", env!("CARGO_PKG_VERSION")))
+                        .on_hover_text(env!("LATEST_GIT_COMMIT_HASH"));
                     ui.scope(|ui| {
                         ui.style_mut().spacing.button_padding = egui::Vec2::new(3.0, 0.0);
                         let button = ui
