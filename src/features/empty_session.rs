@@ -76,6 +76,7 @@ pub fn activate(game_handle: &mut HANDLE, system_info: &mut SystemInfo) -> Resul
 
 pub fn deactivate(game_handle: &mut HANDLE) {
     if !game_handle.is_invalid() {
-        unsafe { NtResumeProcess(*game_handle) }.unwrap();
+        // ignoring the return because this function behaves very weirdly
+        let _ = unsafe { NtResumeProcess(*game_handle) };
     }
 }
