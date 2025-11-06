@@ -14,9 +14,7 @@ fn app_creator(
     let mut app = Box::new(App::default());
     // load previously selected launch platform & settings from persistent state
     if let Some(persistent_state) = PersistentState::get() {
-        app.launch.selected = persistent_state.launcher;
-        app.anti_afk.enabled = persistent_state.anti_afk_enabled;
-        app.settings = persistent_state.settings;
+        persistent_state.apply_to(&mut app);
     }
     // check if we're elevated. if not, and the user wants an elevated launch - relaunch elevated
     if !app.flags.elevated && app.settings.start_elevated {

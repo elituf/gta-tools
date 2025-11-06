@@ -1,4 +1,8 @@
-use crate::{features::launch::Platform, gui::settings::Settings, util::consts::path};
+use crate::{
+    features::launch::Platform,
+    gui::{app, settings::Settings},
+    util::consts::path,
+};
 use serde::{Deserialize, Serialize};
 use std::{
     fs::{self, File},
@@ -23,5 +27,16 @@ impl PersistentState {
         let mut config_file = File::create(path::APP_CONFIG.as_path()).unwrap();
         let json = serde_json::to_string_pretty(&self).unwrap();
         config_file.write_all(json.as_bytes()).unwrap();
+    }
+
+    pub fn apply_to(self, app: &mut app::App) {
+        let Self {
+            launcher,
+            anti_afk_enabled,
+            settings,
+        } = self;
+        app.launch.selected = launcher;
+        app.anti_afk.enabled = anti_afk_enabled;
+        app.settings = settings;
     }
 }
