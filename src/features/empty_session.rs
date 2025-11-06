@@ -57,19 +57,19 @@ fn get_gta_pid(system_info: &mut SystemInfo) -> Option<u32> {
         .map(|p| p.pid())
 }
 
-pub fn activate(game_handle: &mut HANDLE, system_info: &mut SystemInfo) -> Result<(), ()> {
+pub fn activate(game_handle: &mut HANDLE, system_info: &mut SystemInfo) -> bool {
     let Some(pid) = get_gta_pid(system_info) else {
-        return Err(());
+        return false;
     };
     match unsafe { OpenProcess(PROCESS_SUSPEND_RESUME, false, pid) } {
         Ok(handle) => *game_handle = handle,
         Err(why) => {
             log::error!("failed to suspend game for empty session:\n{why}");
-            return Err(());
+            return false;
         }
     }
     unsafe { NtSuspendProcess(*game_handle) }.unwrap();
-    Ok(())
+    true
 }
 
 pub fn deactivate(game_handle: &mut HANDLE) {

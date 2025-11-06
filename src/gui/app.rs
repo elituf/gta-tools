@@ -122,7 +122,6 @@ impl App {
                         &mut self.game_handle,
                         &mut self.system_info,
                     )
-                    .is_ok()
                 {
                     self.empty_session.interval = Instant::now();
                     self.empty_session.disabled = true;
