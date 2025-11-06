@@ -13,7 +13,7 @@ fn main() {
 
 fn embed_latest_git_hash() {
     let git_rev_parse = std::process::Command::new("git")
-        .args(&["rev-parse", "--short=8", "HEAD"])
+        .args(["rev-parse", "--short=8", "HEAD"])
         .output()
         .unwrap();
     let git_hash = String::from_utf8(git_rev_parse.stdout).unwrap();
