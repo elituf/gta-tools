@@ -44,7 +44,7 @@ pub fn launch(platform: &Platform, version: &LaunchVersion) {
             };
             let mut play_gtav_path = PathBuf::from(install_folder);
             play_gtav_path.push("PlayGTAV.exe");
-            // ignoring `Result` because if it errors that means GTA isn't installed via Rockstar
+            // ignoring the return because if it errors that means GTA isn't installed via Rockstar
             let _ = Command::new(play_gtav_path).spawn();
         }
         Platform::Epic => {
