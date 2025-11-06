@@ -1,7 +1,6 @@
 use crate::util::{
     consts::game::{EXE_ENHANCED, EXE_LEGACY},
     countdown::Countdown,
-    log,
     system_info::SystemInfo,
 };
 use std::time::{Duration, Instant};
@@ -65,8 +64,7 @@ pub fn activate(game_handle: &mut HANDLE, system_info: &mut SystemInfo) -> Resul
     match unsafe { OpenProcess(PROCESS_SUSPEND_RESUME, false, pid) } {
         Ok(handle) => *game_handle = handle,
         Err(why) => {
-            let message = format!("failed to suspend game for empty session:\n{why}");
-            log::log(log::LogLevel::Error, &message);
+            log::error!("failed to suspend game for empty session:\n{why}");
             return Err(());
         }
     }

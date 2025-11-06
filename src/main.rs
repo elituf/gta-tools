@@ -12,12 +12,16 @@ fn init_storage() {
 
 fn panic_hook(panic_info: &std::panic::PanicHookInfo<'_>) {
     let backtrace = std::backtrace::Backtrace::capture();
-    let message = format!("{panic_info}\nstack backtrace:\n{backtrace}\n");
-    util::log::log(util::log::LogLevel::Panic, &message);
+    let mut message = format!("{panic_info}");
+    if backtrace.status() == std::backtrace::BacktraceStatus::Captured {
+        message += &format!("\nstack backtrace:\n{backtrace}");
+    }
+    log::error!("{message}");
 }
 
 fn main() {
     init_storage();
+    util::logging::Logger::init(log::LevelFilter::Info);
     std::panic::set_hook(Box::new(panic_hook));
     gui::run::run();
 }
