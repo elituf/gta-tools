@@ -15,6 +15,7 @@ fn app_creator(
     // load previously selected launch platform & settings from persistent state
     if let Some(persistent_state) = PersistentState::get() {
         app.launch.selected = persistent_state.launcher;
+        app.anti_afk.enabled = persistent_state.anti_afk_enabled;
         app.settings = persistent_state.settings;
     }
     // check if we're elevated. if not, and the user wants an elevated launch - relaunch elevated

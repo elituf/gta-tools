@@ -8,6 +8,7 @@ use std::{
 #[derive(Serialize, Deserialize)]
 pub struct PersistentState {
     pub launcher: Platform,
+    pub anti_afk_enabled: bool,
     pub settings: Settings,
 }
 

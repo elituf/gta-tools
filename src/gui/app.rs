@@ -262,6 +262,7 @@ impl Drop for App {
         // save any persistent state to config file
         PersistentState {
             launcher: self.launch.selected,
+            anti_afk_enabled: self.anti_afk.enabled,
             settings: self.settings.clone(),
         }
         .set();
