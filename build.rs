@@ -8,16 +8,16 @@ fn main() {
         .set_icon("assets/icon.ico")
         .compile()
         .unwrap();
-    println!(
-        "cargo:rustc-env=LATEST_GIT_COMMIT_HASH={}",
-        latest_git_commit_hash()
-    )
+    embed_latest_git_hash();
 }
 
-fn latest_git_commit_hash() -> String {
+fn embed_latest_git_hash() {
     let git_rev_parse = std::process::Command::new("git")
         .args(&["rev-parse", "--short=8", "HEAD"])
         .output()
         .unwrap();
-    String::from_utf8(git_rev_parse.stdout).unwrap()
+    let git_hash = String::from_utf8(git_rev_parse.stdout).unwrap();
+    println!("cargo:rustc-env=LATEST_GIT_COMMIT_HASH={git_hash}");
+    println!("cargo:rerun-if-changed=.git/refs/heads/main");
+    println!("cargo:rerun-if-changed=.git/HEAD");
 }
