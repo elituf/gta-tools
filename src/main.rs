@@ -5,15 +5,15 @@ mod gui;
 mod util;
 
 fn init_storage() {
-    if !crate::util::consts::path::APP_STORAGE.exists() {
-        std::fs::create_dir_all(crate::util::consts::path::APP_STORAGE.as_path()).unwrap();
+    if !util::consts::path::APP_STORAGE.exists() {
+        std::fs::create_dir_all(util::consts::path::APP_STORAGE.as_path()).unwrap();
     }
 }
 
 fn panic_hook(panic_info: &std::panic::PanicHookInfo<'_>) {
     let backtrace = std::backtrace::Backtrace::capture();
     let message = format!("{panic_info}\nstack backtrace:\n{backtrace}\n");
-    crate::util::log::log(crate::util::log::LogLevel::Panic, &message);
+    util::log::log(util::log::LogLevel::Panic, &message);
 }
 
 fn main() {
