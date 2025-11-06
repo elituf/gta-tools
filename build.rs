@@ -17,7 +17,7 @@ fn embed_latest_git_hash() {
         .output()
         .unwrap();
     let git_hash = String::from_utf8(git_rev_parse.stdout).unwrap();
-    println!("cargo:rustc-env=LATEST_GIT_COMMIT_HASH={git_hash}");
-    println!("cargo:rerun-if-changed=.git/refs/heads/main");
-    println!("cargo:rerun-if-changed=.git/HEAD");
+    println!("cargo::rustc-env=LATEST_GIT_COMMIT_HASH={git_hash}");
+    println!("cargo::rerun-if-changed=.git/refs/heads/main");
+    println!("cargo::rerun-if-changed=.git/HEAD");
 }
