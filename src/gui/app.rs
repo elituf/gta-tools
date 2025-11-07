@@ -1,8 +1,11 @@
 use crate::{
     features,
-    gui::{colours, settings::Settings, tools, ui_ext::UiExt},
+    gui::{settings::Settings, tools, ui_ext::UiExt},
     util::{
-        consts::game::WINDOW_TITLE, persistent_state::PersistentState, system_info::SystemInfo, win,
+        consts::{colours, game::WINDOW_TITLE},
+        persistent_state::PersistentState,
+        system_info::SystemInfo,
+        win,
     },
 };
 use eframe::egui;
