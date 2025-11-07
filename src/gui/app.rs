@@ -228,28 +228,22 @@ impl App {
                     ui.spacing_mut().item_spacing.x = 0.0;
                     ui.label("with ");
                     ui.scope(|ui| {
-                        ui.style_mut().visuals.hyperlink_color = colours::RED;
-                        ui.hyperlink_to("❤", "https://github.com/elituf/gta-tools");
+                        ui.style_mut().visuals.override_text_color = Some(colours::RED);
+                        ui.label("❤");
                     });
                     ui.label(" from ");
                     ui.hyperlink_to("futile", "https://futile.eu");
                 });
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.style_mut().spacing.button_padding = egui::Vec2::new(4.0, 0.0);
+                    if ui.button("").on_hover_text("View source code").clicked() {
+                        open::that("https://github.com/elituf/gta-tools").unwrap();
+                    }
                     if cfg!(debug_assertions) {
                         ui.label("(dev)");
                     }
                     ui.label(format!("v{}", env!("CARGO_PKG_VERSION")))
                         .on_hover_text(env!("LATEST_GIT_COMMIT_HASH"));
-                    ui.scope(|ui| {
-                        ui.style_mut().spacing.button_padding = egui::Vec2::new(3.0, 0.0);
-                        let button = ui
-                            .button("⬇")
-                            .on_hover_text("Go to current latest version.");
-                        if button.clicked() {
-                            open::that("https://github.com/elituf/gta-tools/releases/latest")
-                                .unwrap();
-                        }
-                    });
                 });
             });
             ui.add(egui::Image::new(egui::include_image!(
