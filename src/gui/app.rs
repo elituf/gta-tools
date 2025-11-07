@@ -243,7 +243,9 @@ impl App {
                         ui.label("(dev)");
                     }
                     ui.label(format!("v{}", env!("CARGO_PKG_VERSION")))
-                        .on_hover_text(env!("LATEST_GIT_COMMIT_HASH"));
+                        .on_hover_text(
+                            egui::RichText::new(env!("LATEST_GIT_COMMIT_HASH")).monospace(),
+                        );
                 });
             });
             ui.add(egui::Image::new(egui::include_image!(
