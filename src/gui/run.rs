@@ -37,12 +37,21 @@ fn app_creator(
     // load any extra fonts that we need
     let mut fonts = egui::FontDefinitions::default();
     fonts.font_data.insert(
-        "Ubuntu-Regular".to_owned(),
-        egui::FontData::from_static(include_bytes!("../../assets/Ubuntu-Regular.ttf")).into(),
+        "Inter 18pt Light".to_owned(),
+        egui::FontData::from_static(include_bytes!("../../assets/Inter_18pt-Light.ttf")).into(),
+    );
+    fonts
+        .families
+        .get_mut(&egui::FontFamily::Proportional)
+        .unwrap()
+        .insert(0, "Inter 18pt Light".to_owned());
+    fonts.font_data.insert(
+        "Inter 18pt Regular".to_owned(),
+        egui::FontData::from_static(include_bytes!("../../assets/Inter_18pt-Regular.ttf")).into(),
     );
     fonts.families.insert(
-        egui::FontFamily::Name("Ubuntu-Regular".into()),
-        vec!["Ubuntu-Regular".to_owned()],
+        egui::FontFamily::Name("Inter 18pt Regular".into()),
+        vec!["Inter 18pt Regular".to_owned()],
     );
     cc.egui_ctx.set_fonts(fonts);
     // finally return the App

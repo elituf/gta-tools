@@ -13,7 +13,7 @@ impl UiExt for egui::Ui {
         self.horizontal(|ui| {
             ui.label(egui::RichText::new(text).font(egui::FontId::new(
                 12.5,
-                egui::FontFamily::Name("Ubuntu-Regular".into()),
+                egui::FontFamily::Name("Inter 18pt Regular".into()),
             )));
             ui.add(egui::Separator::default().horizontal());
         });
