@@ -19,7 +19,7 @@ You will need the Rust toolchain, which can be obtained [here](https://rustup.rs
 
 Every feature of GTA Tools is Legacy/Enhanced-agnostic. Some functionality of GTA Tools requires administrator access. If necessary, GTA Tools can either be started as admin manually, or, the user can simply use the <kbd>Elevate</kbd> button to relaunch GTA Tools as admin.
 
-It is recommended to always use an up-to-date version of GTA Tools from [releases](https://github.com/elituf/gta-tools/releases). You can also easily access the current latest release by going to the <kbd>About</kbd> page of GTA Tools and clicking the <kbd>↓</kbd> button near the version number.
+It is recommended to always use an up-to-date version of GTA Tools from [releases](https://github.com/elituf/gta-tools/releases). You can also easily access this repository by going to the <kbd>About</kbd> page of GTA Tools and clicking the GitHub button beside the version number.
 
 #### Game
 
