@@ -109,7 +109,7 @@ impl App {
                 });
         });
         let force_close_button = ui.add_sized(
-            [104.0, 0.0],
+            [108.0, 0.0],
             egui::Button::new(&self.force_close.button_text),
         );
         self.force_close
