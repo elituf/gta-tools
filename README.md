@@ -13,13 +13,13 @@ A toolset of convenient things for GTA V Online.
 Download the latest release [here](https://github.com/elituf/gta-tools/releases/latest/download/gta-tools.exe) and place it somewhere convenient for you, such as Documents. You could then make a shortcut titled "GTA Tools", and pin it to taskbar or Start.
 
 **Option 2** — <ins>Build from source</ins>  
-You will need the Rust toolchain, which can be obtained [here](https://rustup.rs). Follow the instructions of its installer. Once you have Rust installed, clone this repo and navigate to it. At this point, you should probably `git checkout x.x.x`, where `x.x.x` is the latest tag. You can then run `cargo build --release`. Once you do that, you can use the binary located at `.\target\release\gta-tools.exe` in the same way as **Option 1**.
+You will need Rust, which you can get [here](https://rustup.rs). Then, clone this repo and navigate to it. At this point, you should probably `git checkout x.x.x`, where `x.x.x` is the latest tag. You can then run `cargo build --release`. Once you do that, you can use the binary located at `.\target\release\gta-tools.exe` in the same way as **Option 1**.
+
+It is recommended to always use an up-to-date version of GTA Tools from [releases](https://github.com/elituf/gta-tools/releases). You can also easily access this repository by going to the <kbd>About</kbd> page of GTA Tools and clicking the GitHub button beside the version number.
 
 ## Guide
 
 Every feature of GTA Tools is Legacy/Enhanced-agnostic. Some functionality of GTA Tools requires administrator access. If necessary, GTA Tools can either be started as admin manually, or, the user can simply use the <kbd>Elevate</kbd> button to relaunch GTA Tools as admin.
-
-It is recommended to always use an up-to-date version of GTA Tools from [releases](https://github.com/elituf/gta-tools/releases). You can also easily access this repository by going to the <kbd>About</kbd> page of GTA Tools and clicking the GitHub button beside the version number.
 
 #### Game
 
@@ -61,7 +61,7 @@ This feature is primarily useful for **replay glitching**, which is an exploit t
 
 ## Issues
 
-- I have noticed that on my current Windows 10 install, when not elevated (administrator), the <kbd>Force close game</kbd> and <kbd>Empty current session</kbd> features can fail due to being denied access. This was tested by other people and is not guaranteed to happen. If this does happen to you, I recommend using GTA Tools always in elevated mode. Check "Always start elevated" in the Settings tab.
+- It is possible that when not elevated (administrator), the <kbd>Force close game</kbd> and <kbd>Empty current session</kbd> features can fail due to being denied access to the game. This is not guaranteed to happen. If this does happen to you, I recommend always using GTA Tools in elevated mode. For convenience, you may check "Always start elevated" in the Settings tab.
 
 
 
