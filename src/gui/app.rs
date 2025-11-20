@@ -232,7 +232,11 @@ impl App {
                         ui.label("❤");
                     });
                     ui.label(" from ");
-                    ui.hyperlink_to("futile", "https://futile.eu");
+                    ui.scope(|ui| {
+                        ui.style_mut().visuals.hyperlink_color =
+                            catppuccin_egui::Theme::from(self.settings.theme).text;
+                        ui.hyperlink_to("futile", "https://futile.eu");
+                    });
                 });
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.style_mut().spacing.button_padding = egui::Vec2::new(4.0, 0.0);
