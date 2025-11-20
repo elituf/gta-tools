@@ -1,6 +1,10 @@
 use crate::{
     features,
-    gui::{settings::Settings, tools, ui_ext::UiExt},
+    gui::{
+        settings::{BlockMethod, ROCKSTAR_SAVE_SERVER, Settings},
+        tools,
+        ui_ext::UiExt,
+    },
     util::{
         consts::{colours, game::WINDOW_TITLE},
         persistent_state::PersistentState,
@@ -221,6 +225,32 @@ impl App {
                         ui.build_menu(&mut self.settings.launch_version);
                     });
                 ui.label("Launch version");
+            });
+        });
+        ui.collapsing("Network", |ui| {
+            ui.horizontal(|ui| {
+                egui::ComboBox::from_id_salt("Block method")
+                    .selected_text(self.settings.block_method.to_string())
+                    .show_ui(ui, |ui| {
+                        ui.build_menu(&mut self.settings.block_method);
+                    });
+                ui.label("Block method");
+            });
+            ui.horizontal(|ui| {
+                ui.add_enabled_ui(
+                    self.settings.block_method == BlockMethod::SaveServer,
+                    |ui| {
+                        ui.add(
+                            egui::TextEdit::singleline(&mut self.settings.save_server_ip)
+                                .char_limit(15)
+                                .desired_width(92.0),
+                        );
+                        ui.label("Save server IP");
+                        if ui.button("↺").clicked() {
+                            self.settings.save_server_ip = String::from(ROCKSTAR_SAVE_SERVER);
+                        };
+                    },
+                );
             });
         });
     }
