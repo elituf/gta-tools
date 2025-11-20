@@ -28,10 +28,10 @@ impl From<Theme> for catppuccin_egui::Theme {
     fn from(val: Theme) -> Self {
         match val {
             Theme::Auto => {
-                if win::is_system_theme_dark() {
-                    catppuccin_egui::MOCHA
-                } else {
+                if win::is_system_theme_light() {
                     catppuccin_egui::LATTE
+                } else {
+                    catppuccin_egui::MOCHA
                 }
             }
             Theme::CatppuccinLatte => catppuccin_egui::LATTE,
