@@ -14,14 +14,14 @@ pub enum Theme {
     #[default]
     #[strum(to_string = "Auto")]
     Auto,
-    #[strum(to_string = "Catppuccin Latte")]
-    CatppuccinLatte,
-    #[strum(to_string = "Catppuccin Frappe")]
-    CatppuccinFrappe,
-    #[strum(to_string = "Catppuccin Macchiato")]
-    CatppuccinMacchiato,
-    #[strum(to_string = "Catppuccin Mocha")]
-    CatppuccinMocha,
+    #[strum(to_string = "Latte")]
+    Latte,
+    #[strum(to_string = "Frappe")]
+    Frappe,
+    #[strum(to_string = "Macchiato")]
+    Macchiato,
+    #[strum(to_string = "Mocha")]
+    Mocha,
 }
 
 impl From<Theme> for catppuccin_egui::Theme {
@@ -34,17 +34,17 @@ impl From<Theme> for catppuccin_egui::Theme {
                     catppuccin_egui::MOCHA
                 }
             }
-            Theme::CatppuccinLatte => catppuccin_egui::LATTE,
-            Theme::CatppuccinFrappe => catppuccin_egui::FRAPPE,
-            Theme::CatppuccinMacchiato => catppuccin_egui::MACCHIATO,
-            Theme::CatppuccinMocha => catppuccin_egui::MOCHA,
+            Theme::Latte => catppuccin_egui::LATTE,
+            Theme::Frappe => catppuccin_egui::FRAPPE,
+            Theme::Macchiato => catppuccin_egui::MACCHIATO,
+            Theme::Mocha => catppuccin_egui::MOCHA,
         }
     }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Settings {
-    pub launch_version: LaunchVersion,
-    pub theme: Theme,
     pub start_elevated: bool,
+    pub theme: Theme,
+    pub launch_version: LaunchVersion,
 }

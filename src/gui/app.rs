@@ -198,27 +198,31 @@ impl App {
     }
 
     fn show_settings_stage(&mut self, ctx: &egui::Context, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
-            ui.label("Launch version");
-            egui::ComboBox::from_id_salt("Launch version")
-                .selected_text(self.settings.launch_version.to_string())
-                .show_ui(ui, |ui| {
-                    ui.build_menu(&mut self.settings.launch_version);
-                });
+        ui.collapsing("General", |ui| {
+            ui.checkbox(&mut self.settings.start_elevated, "Always start elevated");
+            ui.horizontal(|ui| {
+                let selection = self.settings.theme;
+                egui::ComboBox::from_id_salt("Theme")
+                    .selected_text(self.settings.theme.to_string())
+                    .show_ui(ui, |ui| {
+                        ui.build_menu(&mut self.settings.theme);
+                    });
+                if selection != self.settings.theme {
+                    catppuccin_egui::set_theme(ctx, self.settings.theme.into());
+                }
+                ui.label("Theme");
+            });
         });
-        ui.horizontal(|ui| {
-            let selection = self.settings.theme;
-            ui.label("Theme");
-            egui::ComboBox::from_id_salt("Theme")
-                .selected_text(self.settings.theme.to_string())
-                .show_ui(ui, |ui| {
-                    ui.build_menu(&mut self.settings.theme);
-                });
-            if selection != self.settings.theme {
-                catppuccin_egui::set_theme(ctx, self.settings.theme.into());
-            }
+        ui.collapsing("Game", |ui| {
+            ui.horizontal(|ui| {
+                egui::ComboBox::from_id_salt("Launch version")
+                    .selected_text(self.settings.launch_version.to_string())
+                    .show_ui(ui, |ui| {
+                        ui.build_menu(&mut self.settings.launch_version);
+                    });
+                ui.label("Launch version");
+            });
         });
-        ui.checkbox(&mut self.settings.start_elevated, "Always start elevated");
     }
 
     fn show_about_stage(&self, _ctx: &egui::Context, ui: &mut egui::Ui) {
