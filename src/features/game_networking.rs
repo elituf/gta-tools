@@ -58,7 +58,7 @@ pub struct GameNetworking {
 impl Default for GameNetworking {
     fn default() -> Self {
         Self {
-            blocked_status: if Self::is_save_server_blocked().unwrap() == true {
+            blocked_status: if Self::is_save_server_blocked().unwrap() {
                 Self::is_save_server_blocked().unwrap().into()
             } else {
                 Self::is_exe_blocked().unwrap().into()
@@ -84,7 +84,7 @@ enum Mode {
 }
 
 impl GameNetworking {
-    fn block_generic(&mut self, mode: Mode) -> Result<(), Box<dyn Error>> {
+    fn block_generic(&self, mode: Mode) -> Result<(), Box<dyn Error>> {
         let policy: INetFwPolicy2 =
             unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER) }?;
         let rules = unsafe { policy.Rules() }?;
@@ -108,7 +108,7 @@ impl GameNetworking {
         Ok(())
     }
 
-    fn unblock_generic(&mut self, filter_name: &str) -> Result<(), Box<dyn Error>> {
+    fn unblock_generic(&self, filter_name: &str) -> Result<(), Box<dyn Error>> {
         let policy: INetFwPolicy2 =
             unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER) }?;
         let rules = unsafe { policy.Rules() }?;

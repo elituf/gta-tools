@@ -4,6 +4,8 @@ mod features;
 mod gui;
 mod util;
 
+use std::fmt::Write;
+
 fn init_storage() {
     if !util::consts::path::APP_STORAGE.exists() {
         std::fs::create_dir_all(util::consts::path::APP_STORAGE.as_path()).unwrap();
@@ -14,7 +16,7 @@ fn panic_hook(panic_info: &std::panic::PanicHookInfo<'_>) {
     let backtrace = std::backtrace::Backtrace::capture();
     let mut message = format!("{panic_info}");
     if backtrace.status() == std::backtrace::BacktraceStatus::Captured {
-        message += &format!("\nstack backtrace:\n{backtrace}");
+        write!(message, "\nstack backtrace:\n{backtrace}").unwrap();
     }
     log::error!("{message}");
 }

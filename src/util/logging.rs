@@ -59,6 +59,6 @@ impl Logger {
             humantime::format_rfc3339_seconds(SystemTime::now()),
             record.level(),
             record.args()
-        )
+        );
     }
 }

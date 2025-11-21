@@ -268,7 +268,7 @@ impl App {
                             ui.label("Save server IP");
                             if ui.button("↺").clicked() {
                                 self.settings.save_server_ip = String::from(ROCKSTAR_SAVE_SERVER);
-                            };
+                            }
                         },
                     );
                 });
