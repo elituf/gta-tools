@@ -160,15 +160,15 @@ impl App {
         egui::Frame::new()
             .outer_margin(egui::vec2(0.0, -2.0))
             .show(ui, |ui| {
-                let response = ui.add_enabled_ui(self.flags.elevated, |ui| {
+                ui.add_enabled_ui(self.flags.elevated, |ui| {
                     let label = ui.horizontal(|ui| {
-                        let label = ui.label("Game's network access");
+                        let label = match self.settings.block_method {
+                            BlockMethod::EntireGame => ui.label("Game's network access"),
+                            BlockMethod::SaveServer => ui.label("Rockstar save server access"),
+                        };
                         ui.add_space(1.0);
-                        ui.create_indicator_dot(self.game_networking.blocked_status)
-                            .on_hover_text(
-                                "This turns yellow if GTA Tools\ncannot find your game.",
-                            );
-                        self.game_networking.reset_if_failed();
+                        ui.create_indicator_dot(self.game_networking.blocked_status);
+                        self.game_networking.reset_indicator_if_failed();
                         label
                     });
                     ui.horizontal(|ui| {
@@ -179,19 +179,36 @@ impl App {
                             .add_sized([button_width, 18.0], egui::Button::new("Block"))
                             .clicked()
                         {
-                            self.game_networking.block_exe(&mut self.system_info);
+                            match self.settings.block_method {
+                                BlockMethod::EntireGame => {
+                                    self.game_networking
+                                        .block_exe(&mut self.system_info)
+                                        .unwrap();
+                                }
+                                BlockMethod::SaveServer => {
+                                    self.game_networking
+                                        .block_save_server(&self.settings.save_server_ip)
+                                        .unwrap();
+                                }
+                            }
                         }
                         if ui
                             .add_sized([button_width, 18.0], egui::Button::new("Unblock"))
                             .clicked()
                         {
-                            self.game_networking.unblock_exe();
+                            match self.settings.block_method {
+                                BlockMethod::EntireGame => {
+                                    self.game_networking.unblock_exe().unwrap();
+                                }
+                                BlockMethod::SaveServer => {
+                                    self.game_networking.unblock_save_server().unwrap();
+                                }
+                            }
                         }
                     });
-                });
-                response.response.on_disabled_hover_text(
-                    "This requires administrator.\nUse the Elevate button.",
-                );
+                })
+                .response
+                .on_disabled_hover_text("This requires administrator.\nUse the Elevate button.");
             });
     }
 
@@ -228,30 +245,36 @@ impl App {
             });
         });
         ui.collapsing("Network", |ui| {
-            ui.horizontal(|ui| {
-                egui::ComboBox::from_id_salt("Block method")
-                    .selected_text(self.settings.block_method.to_string())
-                    .show_ui(ui, |ui| {
-                        ui.build_menu(&mut self.settings.block_method);
-                    });
-                ui.label("Block method");
-            });
-            ui.horizontal(|ui| {
-                ui.add_enabled_ui(
-                    self.settings.block_method == BlockMethod::SaveServer,
-                    |ui| {
-                        ui.add(
-                            egui::TextEdit::singleline(&mut self.settings.save_server_ip)
-                                .char_limit(15)
-                                .desired_width(92.0),
-                        );
-                        ui.label("Save server IP");
-                        if ui.button("↺").clicked() {
-                            self.settings.save_server_ip = String::from(ROCKSTAR_SAVE_SERVER);
-                        };
-                    },
-                );
-            });
+            ui.add_enabled_ui(self.flags.elevated, |ui| {
+                ui.horizontal(|ui| {
+                    egui::ComboBox::from_id_salt("Block method")
+                        .selected_text(self.settings.block_method.to_string())
+                        .show_ui(ui, |ui| {
+                            ui.build_menu(&mut self.settings.block_method);
+                        });
+                    ui.label("Block method");
+                    self.game_networking
+                        .ensure_not_both_blocked_simultaneously(self.settings.block_method);
+                });
+                ui.horizontal(|ui| {
+                    ui.add_enabled_ui(
+                        self.settings.block_method == BlockMethod::SaveServer,
+                        |ui| {
+                            ui.add(
+                                egui::TextEdit::singleline(&mut self.settings.save_server_ip)
+                                    .char_limit(15)
+                                    .desired_width(92.0),
+                            );
+                            ui.label("Save server IP");
+                            if ui.button("↺").clicked() {
+                                self.settings.save_server_ip = String::from(ROCKSTAR_SAVE_SERVER);
+                            };
+                        },
+                    );
+                });
+            })
+            .response
+            .on_disabled_hover_text("This requires administrator.\nUse the Elevate button.");
         });
     }
 
