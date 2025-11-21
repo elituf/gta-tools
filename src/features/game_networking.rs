@@ -88,9 +88,13 @@ impl GameNetworking {
         let policy: INetFwPolicy2 =
             unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER) }?;
         let rules = unsafe { policy.Rules() }?;
-        unsafe { rules.Remove(&BSTR::from(FILTER_NAME_SAVE_SERVER)) }?;
+        let filter_name = match mode {
+            Mode::EntireGame(_) => FILTER_NAME_EXE,
+            Mode::SaveServer(_) => FILTER_NAME_SAVE_SERVER,
+        };
+        unsafe { rules.Remove(&BSTR::from(filter_name)) }?;
         let rule: INetFwRule = unsafe { CoCreateInstance(&NetFwRule, None, CLSCTX_INPROC_SERVER) }?;
-        unsafe { rule.SetName(&BSTR::from(FILTER_NAME_SAVE_SERVER)) }?;
+        unsafe { rule.SetName(&BSTR::from(filter_name)) }?;
         match mode {
             Mode::EntireGame(exe_path) => {
                 let exe_path = BSTR::from(exe_path.to_string_lossy().to_string());
