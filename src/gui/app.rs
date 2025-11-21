@@ -168,7 +168,7 @@ impl App {
                             .on_hover_text(
                                 "This turns yellow if GTA Tools\ncannot find your game.",
                             );
-                        self.game_networking.if_failed_return_to_boolean();
+                        self.game_networking.reset_if_failed();
                         label
                     });
                     ui.horizontal(|ui| {
@@ -179,13 +179,13 @@ impl App {
                             .add_sized([button_width, 18.0], egui::Button::new("Block"))
                             .clicked()
                         {
-                            self.game_networking.block_all(&mut self.system_info);
+                            self.game_networking.block_exe(&mut self.system_info);
                         }
                         if ui
                             .add_sized([button_width, 18.0], egui::Button::new("Unblock"))
                             .clicked()
                         {
-                            self.game_networking.unblock_all();
+                            self.game_networking.unblock_exe();
                         }
                     });
                 });
