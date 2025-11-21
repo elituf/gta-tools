@@ -168,41 +168,44 @@ impl App {
                         self.game_networking.reset_indicator_if_failed();
                         label
                     });
-                    ui.horizontal(|ui| {
-                        let available_width = label.inner.rect.width();
-                        let spacing = ui.spacing().item_spacing.x;
-                        let button_width = (available_width - spacing) / 2.0;
-                        if ui
-                            .add_sized([button_width, 18.0], egui::Button::new("Block"))
-                            .clicked()
-                        {
-                            match self.settings.block_method {
-                                BlockMethod::EntireGame => {
-                                    self.game_networking
-                                        .block_exe(&mut self.system_info)
-                                        .unwrap();
-                                }
-                                BlockMethod::SaveServer => {
-                                    self.game_networking
-                                        .block_save_server(&self.settings.save_server_ip)
-                                        .unwrap();
-                                }
-                            }
-                        }
-                        if ui
-                            .add_sized([button_width, 18.0], egui::Button::new("Unblock"))
-                            .clicked()
-                        {
-                            match self.settings.block_method {
-                                BlockMethod::EntireGame => {
-                                    self.game_networking.unblock_exe().unwrap();
-                                }
-                                BlockMethod::SaveServer => {
-                                    self.game_networking.unblock_save_server().unwrap();
-                                }
-                            }
-                        }
-                    });
+                    ui.allocate_ui_with_layout(
+                        egui::vec2(label.inner.rect.width(), 0.0),
+                        egui::Layout::top_down(egui::Align::Min),
+                        |ui| {
+                            ui.columns(2, |columns| {
+                                columns[0].vertical_centered_justified(|ui| {
+                                    if ui.button("Block").clicked() {
+                                        match self.settings.block_method {
+                                            BlockMethod::EntireGame => {
+                                                self.game_networking
+                                                    .block_exe(&mut self.system_info)
+                                                    .unwrap();
+                                            }
+                                            BlockMethod::SaveServer => {
+                                                self.game_networking
+                                                    .block_save_server(
+                                                        &self.settings.save_server_ip,
+                                                    )
+                                                    .unwrap();
+                                            }
+                                        }
+                                    }
+                                });
+                                columns[1].vertical_centered_justified(|ui| {
+                                    if ui.button("Unblock").clicked() {
+                                        match self.settings.block_method {
+                                            BlockMethod::EntireGame => {
+                                                self.game_networking.unblock_exe().unwrap();
+                                            }
+                                            BlockMethod::SaveServer => {
+                                                self.game_networking.unblock_save_server().unwrap();
+                                            }
+                                        }
+                                    }
+                                });
+                            })
+                        },
+                    );
                 })
                 .response
                 .on_disabled_hover_text("This requires administrator.\nUse the Elevate button.");
