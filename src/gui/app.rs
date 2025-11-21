@@ -112,10 +112,7 @@ impl App {
                     ui.build_menu(&mut self.launch.selected);
                 });
         });
-        let force_close_button = ui.add_sized(
-            [108.0, 0.0],
-            egui::Button::new(&self.force_close.button_text),
-        );
+        let force_close_button = ui.button(&self.force_close.button_text);
         self.force_close
             .prompt(force_close_button.clicked(), &mut self.system_info);
     }
