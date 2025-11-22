@@ -3,8 +3,12 @@
 A toolset of convenient things for GTA V Online.
 
 <picture>
-    <source srcset="https://i.vgy.me/xt8EfK.png" media="(prefers-color-scheme: dark)">
-    <img src="https://i.vgy.me/lYlZnd.png">
+    <source srcset="https://i.vgy.me/pXkfOR.png" media="(prefers-color-scheme: dark)">
+    <img src="https://i.vgy.me/6cxvIz.png">
+</picture>
+<picture>
+    <source srcset="https://i.vgy.me/m56hFE.png" media="(prefers-color-scheme: dark)">
+    <img src="https://i.vgy.me/wKXFS0.png">
 </picture>
 
 ## Installing
@@ -46,10 +50,7 @@ The other feature is <kbd>Anti AFK</kbd>, which, when toggled, prevents you from
 
 #### Network
 
-The last section has a single feature, <kbd>Game's network access</kbd>, with two buttons, <kbd>Block</kbd> and <kbd>Unblock</kbd>, and a coloured indicator dot. This feature requires administrator, and blocks/unblocks GTA V's entire internet access using the Windows Firewall. The coloured indicator dot has these meanings:
-* **Green** - the game is connected to the internet
-* **Yellow** - the game could not be found running, and thus was not blocked
-* **Red** - the game is blocked from the internet
+The last section has a single feature, <kbd>Game's network access</kbd>, with two buttons, <kbd>Block</kbd> and <kbd>Unblock</kbd>, and a coloured indicator dot (**green** - normal, **red** - blocked). This feature requires administrator, and blocks/unblocks GTA V's entire internet access using the Windows Firewall.
 
 This feature is primarily useful for **replay glitching**, which is an exploit that allows you to complete any heist/mission finale, get the money for it, and then be able to do it again right away. Here's how you can do a replay glitch:
 1. Get to the finale of a heist/contract/mission series, such as **The Contract: Dr. Dre**
@@ -58,6 +59,16 @@ This feature is primarily useful for **replay glitching**, which is an exploit t
 4. After a few seconds, you will be shown an error screen and kicked to the main menu
 5. At this point, <kbd>Unblock</kbd> the game's internet access and load back into online
 6. Finally, spend any amount of money, and you should receive the finale cut, but also be able to go play the finale again immediately
+
+This feature can also be changed to <kbd>Rockstar save server access</kbd> via the **Network** dropdown of the settings. When in this mode, instead of blocking the entire game's network, it will only block the Rockstar save server at the IP `192.81.241.171`. The IP can also be changed in the same settings, if ever needed.
+
+Here's how you can do a replay glitch using this alternative method:
+1. Get to the finale of a heist/contract/mission series, such as **The Contract: Dr. Dre**
+2. At any point before you complete the finale, <kbd>Block</kbd> the save server access (for example, at the beginning of the mission)
+3. Complete the finale as normal
+4. After loading into online, exit to story mode
+5. At this point, <kbd>Unblock</kbd> the save server access and load back into online
+6. Finally, force a save by changing your outfit, and you should receive the finale cut, but also be able to go play the finale again immediately
 
 ## Issues
 
