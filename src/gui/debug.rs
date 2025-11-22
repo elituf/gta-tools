@@ -2,7 +2,6 @@ use crate::{
     gui::{
         app::{App, WINDOW_SIZE},
         tools,
-        ui_ext::UiExt,
     },
     util::consts::{
         game::{EXE_ENHANCED, EXE_LEGACY},
@@ -30,11 +29,12 @@ impl App {
                 ui.label(format!("focused: \"{current_title}\""));
             });
             ui.horizontal(|ui| {
-                ui.label("blocked_status");
-                egui::ComboBox::from_id_salt("blocked_status")
-                    .selected_text(self.game_networking.blocked_status.to_string())
+                ui.label("blocked");
+                egui::ComboBox::from_id_salt("blocked")
+                    .selected_text(self.game_networking.blocked.to_string())
                     .show_ui(ui, |ui| {
-                        ui.build_menu(&mut self.game_networking.blocked_status);
+                        ui.selectable_value(&mut self.game_networking.blocked, true, "true");
+                        ui.selectable_value(&mut self.game_networking.blocked, false, "false");
                     });
             });
             if ui.add(egui::Button::new("force refresh theme")).clicked() {

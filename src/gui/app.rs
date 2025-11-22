@@ -164,8 +164,11 @@ impl App {
                             BlockMethod::SaveServer => ui.label("Rockstar save server access"),
                         };
                         ui.add_space(1.0);
-                        ui.create_indicator_dot(self.game_networking.blocked_status);
-                        self.game_networking.reset_indicator_if_failed();
+                        ui.create_indicator_dot(if self.game_networking.blocked {
+                            colours::RED
+                        } else {
+                            colours::GREEN
+                        });
                         label
                     });
                     ui.allocate_ui_with_layout(
