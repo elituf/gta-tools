@@ -138,23 +138,25 @@ impl GameNetworking {
         Self::is_blocked_generic(FILTER_NAME_SAVE_SERVER)
     }
 
-    pub fn ensure_not_both_blocked_simultaneously(&mut self, block_method: BlockMethod) {
+    pub fn ensure_not_both_blocked_simultaneously(
+        &mut self,
+        block_method: BlockMethod,
+    ) -> Result<(), Box<dyn Error>> {
         match block_method {
             BlockMethod::EntireGame => {
-                if Self::is_save_server_blocked().unwrap() {
-                    // ignoring the return because if this is an error the user can just thug it out at that point
-                    let _ = self.unblock_save_server();
-                    self.blocked = Self::is_exe_blocked().unwrap();
+                if Self::is_save_server_blocked()? {
+                    self.unblock_save_server()?;
+                    self.blocked = Self::is_exe_blocked()?;
                 }
             }
             BlockMethod::SaveServer => {
-                if Self::is_exe_blocked().unwrap() {
-                    // ignoring the return because if this is an error the user can just thug it out at that point
-                    let _ = self.unblock_exe();
-                    self.blocked = Self::is_save_server_blocked().unwrap();
+                if Self::is_exe_blocked()? {
+                    self.unblock_exe()?;
+                    self.blocked = Self::is_save_server_blocked()?;
                 }
             }
         }
+        Ok(())
     }
 }
 

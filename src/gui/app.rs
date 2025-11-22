@@ -256,8 +256,12 @@ impl App {
                             ui.build_menu(&mut self.settings.block_method);
                         });
                     ui.label("Block method");
-                    self.game_networking
-                        .ensure_not_both_blocked_simultaneously(self.settings.block_method);
+                    if let Err(why) = self
+                        .game_networking
+                        .ensure_not_both_blocked_simultaneously(self.settings.block_method)
+                    {
+                        log::warn!("Couldn't ensure block exclusivity: {why}");
+                    };
                 });
                 ui.horizontal(|ui| {
                     ui.add_enabled_ui(
