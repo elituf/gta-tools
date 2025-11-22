@@ -3,19 +3,13 @@ use crate::{
         app::{App, WINDOW_SIZE},
         tools,
     },
-    util::consts::{
-        game::{EXE_ENHANCED, EXE_LEGACY},
-        path,
-    },
+    util::consts::game::{EXE_ENHANCED, EXE_LEGACY},
 };
 use eframe::egui;
 
 impl App {
     fn add_debug_viewport_contents(&mut self, ui: &mut egui::Ui) {
         ui.collapsing("misc", |ui| {
-            if ui.button("open storage path").clicked() {
-                open::that_detached(path::APP_STORAGE.as_path()).unwrap();
-            }
             ui.scope(|ui| {
                 use windows::Win32::UI::WindowsAndMessaging::{
                     GetForegroundWindow, GetWindowTextW,

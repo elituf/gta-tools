@@ -6,7 +6,7 @@ use crate::{
         ui_ext::UiExt,
     },
     util::{
-        consts::{colours, game::WINDOW_TITLE},
+        consts::{colours, game::WINDOW_TITLE, path},
         persistent_state::PersistentState,
         system_info::SystemInfo,
         win,
@@ -282,6 +282,11 @@ impl App {
             })
             .response
             .on_disabled_hover_text("This requires administrator.\nUse the Elevate button.");
+        });
+        ui.collapsing("Miscellaneous", |ui| {
+            if ui.button("Open storage path").clicked() {
+                open::that_detached(path::APP_STORAGE.as_path()).unwrap();
+            }
         });
     }
 
