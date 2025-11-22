@@ -138,7 +138,7 @@ impl GameNetworking {
         Self::is_blocked_generic(FILTER_NAME_SAVE_SERVER)
     }
 
-    pub fn ensure_not_both_blocked_simultaneously(
+    pub fn ensure_block_exclusivity(
         &mut self,
         block_method: BlockMethod,
     ) -> Result<(), Box<dyn Error>> {

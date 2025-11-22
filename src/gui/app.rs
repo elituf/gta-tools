@@ -258,7 +258,7 @@ impl App {
                     ui.label("Block method");
                     if let Err(why) = self
                         .game_networking
-                        .ensure_not_both_blocked_simultaneously(self.settings.block_method)
+                        .ensure_block_exclusivity(self.settings.block_method)
                     {
                         log::warn!("Couldn't ensure block exclusivity: {why}");
                     };
