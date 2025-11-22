@@ -2,6 +2,7 @@
 
 - rewrite entire codebase
 - add global hotkeys
+- get a new logo
 
 ### <ins>doing</ins>
 
