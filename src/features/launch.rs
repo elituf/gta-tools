@@ -34,18 +34,19 @@ pub fn launch(platform: &Platform, version: &LaunchVersion) {
                 LaunchVersion::Enhanced => r"SOFTWARE\WOW6432Node\Rockstar Games\GTAV Enhanced",
                 LaunchVersion::Legacy => r"SOFTWARE\WOW6432Node\Rockstar Games\Grand Theft Auto V",
             };
-            let Ok(gta_v_enhanced) = hklm.open_subkey(rockstar_url) else {
+            let Ok(gta_key) = hklm.open_subkey(rockstar_url) else {
                 return;
             };
             let Ok(install_folder): Result<String, std::io::Error> =
-                gta_v_enhanced.get_value("InstallFolder")
+                gta_key.get_value("InstallFolder")
             else {
                 return;
             };
-            let mut play_gtav_path = PathBuf::from(install_folder);
-            play_gtav_path.push("PlayGTAV.exe");
-            // ignoring the return because if it errors that means GTA isn't installed via Rockstar
-            let _ = Command::new(play_gtav_path).spawn();
+            let mut exe_path = PathBuf::from(install_folder);
+            exe_path.push("PlayGTAV.exe");
+            if let Err(why) = Command::new(exe_path).spawn() {
+                log::warn!("Couldn't launch GTA 5 via Rockstar Games Launcher: {why}");
+            }
         }
         Platform::Epic => {
             let epic_url = match version {
