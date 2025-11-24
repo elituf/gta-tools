@@ -2,11 +2,11 @@
 
 - rewrite entire codebase
 - add global hotkeys
-- get a new logo
 
 ### <ins>doing</ins>
 
 - better error reporting
+- get a new logo
 
 ### <ins>done</ins>
 
