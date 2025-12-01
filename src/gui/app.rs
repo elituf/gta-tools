@@ -263,22 +263,19 @@ impl App {
                         log::warn!("Couldn't ensure block exclusivity: {why}");
                     };
                 });
-                ui.horizontal(|ui| {
-                    ui.add_enabled_ui(
-                        self.settings.block_method == BlockMethod::SaveServer,
-                        |ui| {
-                            ui.add(
-                                egui::TextEdit::singleline(&mut self.settings.save_server_ip)
-                                    .char_limit(15)
-                                    .desired_width(92.0),
-                            );
-                            ui.label("Save server IP");
-                            if ui.button("↺").clicked() {
-                                self.settings.save_server_ip = String::from(ROCKSTAR_SAVE_SERVER);
-                            }
-                        },
-                    );
-                });
+                if self.settings.block_method == BlockMethod::SaveServer {
+                    ui.horizontal(|ui| {
+                        ui.add(
+                            egui::TextEdit::singleline(&mut self.settings.save_server_ip)
+                                .char_limit(15)
+                                .desired_width(92.0),
+                        );
+                        ui.label("Save server IP");
+                        if ui.button("↺").clicked() {
+                            self.settings.save_server_ip = String::from(ROCKSTAR_SAVE_SERVER);
+                        }
+                    });
+                }
             })
             .response
             .on_disabled_hover_text("This requires administrator.\nUse the Elevate button.");
