@@ -1,5 +1,5 @@
 use crate::{
-    features,
+    features::{self, game_networking::BlockedStatus},
     gui::{
         settings::{BlockMethod, ROCKSTAR_SAVE_SERVER, Settings},
         tools,
@@ -163,10 +163,18 @@ impl App {
                             BlockMethod::SaveServer => ui.label("Rockstar save server access"),
                         };
                         ui.add_space(1.0);
-                        ui.create_indicator_dot(if self.game_networking.blocked {
-                            colours::RED
-                        } else {
-                            colours::GREEN
+                        ui.create_indicator_dot(match self.game_networking.blocked {
+                            BlockedStatus::ExeBlocked
+                                if self.settings.block_method == BlockMethod::EntireGame =>
+                            {
+                                colours::RED
+                            }
+                            BlockedStatus::ServerBlocked
+                                if self.settings.block_method == BlockMethod::SaveServer =>
+                            {
+                                colours::RED
+                            }
+                            _ => colours::GREEN,
                         });
                         label
                     });

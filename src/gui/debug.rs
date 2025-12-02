@@ -2,6 +2,7 @@ use crate::{
     gui::{
         app::{App, WINDOW_SIZE},
         tools,
+        ui_ext::UiExt,
     },
     util::consts::game::{EXE_ENHANCED, EXE_LEGACY},
 };
@@ -26,10 +27,7 @@ impl App {
                 ui.label("blocked");
                 egui::ComboBox::from_id_salt("blocked")
                     .selected_text(self.game_networking.blocked.to_string())
-                    .show_ui(ui, |ui| {
-                        ui.selectable_value(&mut self.game_networking.blocked, true, "true");
-                        ui.selectable_value(&mut self.game_networking.blocked, false, "false");
-                    });
+                    .show_ui(ui, |ui| ui.build_menu(&mut self.game_networking.blocked));
             });
             if ui.add(egui::Button::new("force refresh theme")).clicked() {
                 catppuccin_egui::set_theme(ui.ctx(), self.settings.theme.into());

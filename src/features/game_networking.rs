@@ -6,13 +6,22 @@ use crate::{
     },
 };
 use std::error::Error;
+use strum::{Display, EnumIter};
 
 const FILTER_NAME_EXE: &str = "[GTA Tools] Block outbound traffic for all of GTA V";
 const FILTER_NAME_SAVE_SERVER: &str = "[GTA Tools] Block outbound traffic to Rockstar save server";
 
+#[derive(Clone, Copy, Debug, Default, Display, EnumIter, PartialEq)]
+pub enum BlockedStatus {
+    #[default]
+    NotBlocked,
+    ServerBlocked,
+    ExeBlocked,
+}
+
 #[derive(Debug)]
 pub struct GameNetworking {
-    pub blocked: bool,
+    pub blocked: BlockedStatus,
 }
 
 impl Default for GameNetworking {
@@ -20,9 +29,11 @@ impl Default for GameNetworking {
         let firewall = Firewall::default();
         Self {
             blocked: if firewall.is_blocked(FILTER_NAME_SAVE_SERVER).unwrap() {
-                true
+                BlockedStatus::ServerBlocked
+            } else if firewall.is_blocked(FILTER_NAME_EXE).unwrap() {
+                BlockedStatus::ExeBlocked
             } else {
-                firewall.is_blocked(FILTER_NAME_EXE).unwrap()
+                BlockedStatus::NotBlocked
             },
         }
     }
@@ -37,20 +48,20 @@ impl GameNetworking {
         let Some(exe_path) = system_info.get_game_exe_path() else {
             return Ok(());
         };
-        firewall.add(
-            FILTER_NAME_EXE,
-            RuleMode::Executable(exe_path.to_path_buf()),
-            RuleDirection::Out,
-            RuleProtocol::Any,
-        )?;
-        self.blocked = firewall.is_blocked(FILTER_NAME_EXE)?;
-        Ok(())
+        firewall
+            .add(
+                FILTER_NAME_EXE,
+                RuleMode::Executable(exe_path.to_path_buf()),
+                RuleDirection::Out,
+                RuleProtocol::Any,
+            )
+            .inspect(|_| self.blocked = BlockedStatus::ExeBlocked)
     }
 
     pub fn unblock_exe(&mut self, firewall: &Firewall) -> Result<(), Box<dyn Error>> {
-        firewall.remove(FILTER_NAME_EXE)?;
-        self.blocked = firewall.is_blocked(FILTER_NAME_EXE)?;
-        Ok(())
+        firewall
+            .remove(FILTER_NAME_EXE)
+            .inspect(|_| self.blocked = BlockedStatus::NotBlocked)
     }
 
     pub fn block_save_server(
@@ -58,20 +69,20 @@ impl GameNetworking {
         save_server_ip: &str,
         firewall: &Firewall,
     ) -> Result<(), Box<dyn Error>> {
-        firewall.add(
-            FILTER_NAME_SAVE_SERVER,
-            RuleMode::Address(save_server_ip.to_owned()),
-            RuleDirection::Out,
-            RuleProtocol::Any,
-        )?;
-        self.blocked = firewall.is_blocked(FILTER_NAME_SAVE_SERVER)?;
-        Ok(())
+        firewall
+            .add(
+                FILTER_NAME_SAVE_SERVER,
+                RuleMode::Address(save_server_ip.to_owned()),
+                RuleDirection::Out,
+                RuleProtocol::Any,
+            )
+            .inspect(|_| self.blocked = BlockedStatus::ServerBlocked)
     }
 
     pub fn unblock_save_server(&mut self, firewall: &Firewall) -> Result<(), Box<dyn Error>> {
-        firewall.remove(FILTER_NAME_SAVE_SERVER)?;
-        self.blocked = firewall.is_blocked(FILTER_NAME_SAVE_SERVER)?;
-        Ok(())
+        firewall
+            .remove(FILTER_NAME_SAVE_SERVER)
+            .inspect(|_| self.blocked = BlockedStatus::NotBlocked)
     }
 
     pub fn ensure_block_exclusivity(
@@ -81,15 +92,13 @@ impl GameNetworking {
     ) -> Result<(), Box<dyn Error>> {
         match block_method {
             BlockMethod::EntireGame => {
-                if firewall.is_blocked(FILTER_NAME_SAVE_SERVER)? {
+                if self.blocked == BlockedStatus::ServerBlocked {
                     self.unblock_save_server(firewall)?;
-                    self.blocked = firewall.is_blocked(FILTER_NAME_EXE)?;
                 }
             }
             BlockMethod::SaveServer => {
-                if firewall.is_blocked(FILTER_NAME_EXE)? {
+                if self.blocked == BlockedStatus::ExeBlocked {
                     self.unblock_exe(firewall)?;
-                    self.blocked = firewall.is_blocked(FILTER_NAME_SAVE_SERVER)?;
                 }
             }
         }
