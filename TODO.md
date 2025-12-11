@@ -1,6 +1,7 @@
 ### <ins>todo</ins>
 
 - rewrite entire codebase
+- see if implementing udp for emptying session is good
 
 ### <ins>doing</ins>
 
