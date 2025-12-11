@@ -206,7 +206,7 @@ impl App {
                                         }
                                     }
                                 });
-                            })
+                            });
                         },
                     );
                 })
@@ -261,7 +261,7 @@ impl App {
                         .ensure_block_exclusivity(self.settings.block_method)
                     {
                         log::warn!("Couldn't ensure block exclusivity: {why}");
-                    };
+                    }
                 });
                 if self.settings.block_method == BlockMethod::SaveServer {
                     ui.horizontal(|ui| {

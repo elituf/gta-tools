@@ -59,7 +59,7 @@ enum Mode {
 }
 
 impl GameNetworking {
-    fn block_generic(&self, mode: Mode) -> Result<(), Box<dyn Error>> {
+    fn block_generic(mode: Mode) -> Result<(), Box<dyn Error>> {
         let policy: INetFwPolicy2 =
             unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER) }?;
         let rules = unsafe { policy.Rules() }?;
@@ -87,7 +87,7 @@ impl GameNetworking {
         Ok(())
     }
 
-    fn unblock_generic(&self, filter_name: &str) -> Result<(), Box<dyn Error>> {
+    fn unblock_generic(filter_name: &str) -> Result<(), Box<dyn Error>> {
         let policy: INetFwPolicy2 =
             unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER) }?;
         let rules = unsafe { policy.Rules() }?;
@@ -107,13 +107,13 @@ impl GameNetworking {
         let Some(exe_path) = get_game_exe_path(system_info) else {
             return Ok(());
         };
-        self.block_generic(Mode::EntireGame(exe_path.to_path_buf()))?;
+        Self::block_generic(Mode::EntireGame(exe_path.to_path_buf()))?;
         self.blocked = Self::is_exe_blocked()?;
         Ok(())
     }
 
     pub fn unblock_exe(&mut self) -> Result<(), Box<dyn Error>> {
-        self.unblock_generic(FILTER_NAME_EXE)?;
+        Self::unblock_generic(FILTER_NAME_EXE)?;
         self.blocked = Self::is_exe_blocked()?;
         Ok(())
     }
@@ -123,13 +123,13 @@ impl GameNetworking {
     }
 
     pub fn block_save_server(&mut self, save_server_ip: &str) -> Result<(), Box<dyn Error>> {
-        self.block_generic(Mode::SaveServer(save_server_ip.to_owned()))?;
+        Self::block_generic(Mode::SaveServer(save_server_ip.to_owned()))?;
         self.blocked = Self::is_save_server_blocked()?;
         Ok(())
     }
 
     pub fn unblock_save_server(&mut self) -> Result<(), Box<dyn Error>> {
-        self.unblock_generic(FILTER_NAME_SAVE_SERVER)?;
+        Self::unblock_generic(FILTER_NAME_SAVE_SERVER)?;
         self.blocked = Self::is_save_server_blocked()?;
         Ok(())
     }

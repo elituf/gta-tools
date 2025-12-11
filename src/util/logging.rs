@@ -27,7 +27,7 @@ impl log::Log for Logger {
 
     fn log(&self, record: &log::Record) {
         if self.enabled(record.metadata()) {
-            self.log_to_stderr(record);
+            Self::log_to_stderr(record);
             self.log_to_file(record);
         }
     }
@@ -53,7 +53,7 @@ impl Logger {
         file.flush().unwrap();
     }
 
-    fn log_to_stderr(&self, record: &log::Record) {
+    fn log_to_stderr(record: &log::Record) {
         eprintln!(
             "[{}][{}]\n{}",
             humantime::format_rfc3339_seconds(SystemTime::now()),
