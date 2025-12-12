@@ -180,13 +180,17 @@ impl App {
                                         match self.settings.block_method {
                                             BlockMethod::EntireGame => {
                                                 self.game_networking
-                                                    .block_exe(&mut self.system_info)
+                                                    .block_exe(
+                                                        &mut self.system_info,
+                                                        &self.firewall,
+                                                    )
                                                     .unwrap();
                                             }
                                             BlockMethod::SaveServer => {
                                                 self.game_networking
                                                     .block_save_server(
                                                         &self.settings.save_server_ip,
+                                                        &self.firewall,
                                                     )
                                                     .unwrap();
                                             }
@@ -197,10 +201,14 @@ impl App {
                                     if ui.button("Unblock").clicked() {
                                         match self.settings.block_method {
                                             BlockMethod::EntireGame => {
-                                                self.game_networking.unblock_exe().unwrap();
+                                                self.game_networking
+                                                    .unblock_exe(&self.firewall)
+                                                    .unwrap();
                                             }
                                             BlockMethod::SaveServer => {
-                                                self.game_networking.unblock_save_server().unwrap();
+                                                self.game_networking
+                                                    .unblock_save_server(&self.firewall)
+                                                    .unwrap();
                                             }
                                         }
                                     }
@@ -257,7 +265,7 @@ impl App {
                     ui.label("Block method");
                     if let Err(why) = self
                         .game_networking
-                        .ensure_block_exclusivity(self.settings.block_method)
+                        .ensure_block_exclusivity(self.settings.block_method, &self.firewall)
                     {
                         log::warn!("Couldn't ensure block exclusivity: {why}");
                     }
