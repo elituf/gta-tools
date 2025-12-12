@@ -1,7 +1,6 @@
 ### <ins>todo</ins>
 
 - rewrite entire codebase
-- see if implementing udp for emptying session is good
 
 ### <ins>doing</ins>
 
@@ -12,6 +11,7 @@
 - change `is_system_theme_dark` to `is_system_theme_light`
 - fix weird changing colour on futile link in about
 - get a new logo
+- ~~see if~~ implementing udp for emptying session *is* good
 
 ### i am not fucking doing this
 
