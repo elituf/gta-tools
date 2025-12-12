@@ -1,13 +1,22 @@
-use crate::util::{
-    consts::game::{EXE_ENHANCED, EXE_LEGACY},
-    countdown::Countdown,
-    system_info::SystemInfo,
+use crate::util::{countdown::Countdown, system_info::SystemInfo};
+use std::{
+    error::Error,
+    time::{Duration, Instant},
 };
-use std::time::{Duration, Instant};
-use windows::Win32::{
-    Foundation::{HANDLE, NTSTATUS},
-    System::Threading::{OpenProcess, PROCESS_SUSPEND_RESUME},
+use windows::{
+    Win32::{
+        NetworkManagement::WindowsFirewall::{
+            INetFwPolicy2, INetFwRule, NET_FW_ACTION_BLOCK, NET_FW_IP_PROTOCOL_UDP,
+            NET_FW_RULE_DIR_IN, NET_FW_RULE_DIR_OUT, NetFwPolicy2, NetFwRule,
+        },
+        System::Com::{CLSCTX_INPROC_SERVER, CoCreateInstance},
+    },
+    core::BSTR,
 };
+
+const FILTER_NAME_EMPTY_SESSION_IN: &str = "[GTA Tools] Block inbound UDP traffic for all of GTA V";
+const FILTER_NAME_EMPTY_SESSION_OUT: &str =
+    "[GTA Tools] Block outbound UDP traffic for all of GTA V";
 
 const INTERVAL: Duration = Duration::from_secs(10);
 
@@ -29,52 +38,51 @@ impl Default for EmptySession {
 }
 
 impl EmptySession {
-    pub fn run_timers(&mut self, game_handle: &mut HANDLE) {
+    pub fn run_timers(&mut self) -> Result<(), Box<dyn Error>> {
         if self.disabled {
             self.countdown.count();
         } else {
             self.countdown.reset();
         }
         if self.interval.elapsed() >= INTERVAL {
-            deactivate(game_handle);
+            deactivate()?;
             self.disabled = false;
         }
+        Ok(())
     }
 }
 
-#[link(name = "ntdll")]
-unsafe extern "system" {
-    unsafe fn NtSuspendProcess(ProcessHandle: HANDLE) -> NTSTATUS;
-    unsafe fn NtResumeProcess(ProcessHandle: HANDLE) -> NTSTATUS;
-}
-
-fn get_gta_pid(system_info: &mut SystemInfo) -> Option<u32> {
-    system_info.refresh();
-    system_info
-        .processes()
-        .iter()
-        .find(|p| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
-        .map(|p| p.pid())
-}
-
-pub fn activate(game_handle: &mut HANDLE, system_info: &mut SystemInfo) -> bool {
-    let Some(pid) = get_gta_pid(system_info) else {
-        return false;
+pub fn activate(system_info: &mut SystemInfo) -> Result<bool, Box<dyn Error>> {
+    let Some(exe_path) = system_info.get_game_exe_path() else {
+        log::info!("wasn't able to find game exe");
+        return Ok(false);
     };
-    match unsafe { OpenProcess(PROCESS_SUSPEND_RESUME, false, pid) } {
-        Ok(handle) => *game_handle = handle,
-        Err(why) => {
-            log::error!("failed to suspend game for empty session:\n{why}");
-            return false;
-        }
+    for (direction, filter_name) in [
+        (NET_FW_RULE_DIR_IN, FILTER_NAME_EMPTY_SESSION_IN),
+        (NET_FW_RULE_DIR_OUT, FILTER_NAME_EMPTY_SESSION_OUT),
+    ] {
+        let policy: INetFwPolicy2 =
+            unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER) }?;
+        let rules = unsafe { policy.Rules() }?;
+        unsafe { rules.Remove(&BSTR::from(filter_name)) }?;
+        let rule: INetFwRule = unsafe { CoCreateInstance(&NetFwRule, None, CLSCTX_INPROC_SERVER) }?;
+        unsafe { rule.SetName(&BSTR::from(filter_name)) }?;
+        unsafe { rule.SetApplicationName(&BSTR::from(exe_path.to_string_lossy().to_string())) }?;
+        unsafe { rule.SetDirection(direction) }?;
+        unsafe { rule.SetEnabled(true.into()) }?;
+        unsafe { rule.SetAction(NET_FW_ACTION_BLOCK) }?;
+        unsafe { rule.SetProtocol(NET_FW_IP_PROTOCOL_UDP.0) }?;
+        unsafe { rules.Add(&rule) }?;
     }
-    unsafe { NtSuspendProcess(*game_handle) }.unwrap();
-    true
+    Ok(true)
 }
 
-pub fn deactivate(game_handle: &mut HANDLE) {
-    if !game_handle.is_invalid() {
-        // ignoring the return because this function behaves very weirdly
-        let _ = unsafe { NtResumeProcess(*game_handle) };
+pub fn deactivate() -> Result<(), Box<dyn Error>> {
+    let policy: INetFwPolicy2 =
+        unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER) }?;
+    let rules = unsafe { policy.Rules() }?;
+    for filter_name in [FILTER_NAME_EMPTY_SESSION_IN, FILTER_NAME_EMPTY_SESSION_OUT] {
+        unsafe { rules.Remove(&BSTR::from(filter_name)) }?;
     }
+    Ok(())
 }

@@ -82,7 +82,7 @@ impl GameNetworking {
     }
 
     pub fn block_exe(&mut self, system_info: &mut SystemInfo) -> Result<(), Box<dyn Error>> {
-        let Some(exe_path) = get_game_exe_path(system_info) else {
+        let Some(exe_path) = system_info.get_game_exe_path() else {
             return Ok(());
         };
         Self::block_generic(Mode::EntireGame(exe_path.to_path_buf()))?;

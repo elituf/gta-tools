@@ -49,7 +49,6 @@ pub struct App {
     stage: Stage,
     pub flags: Flags,
     pub system_info: SystemInfo,
-    game_handle: windows::Win32::Foundation::HANDLE,
     pub anti_afk: features::anti_afk::AntiAfk,
     empty_session: features::empty_session::EmptySession,
     force_close: features::force_close::ForceClose,
@@ -60,7 +59,7 @@ pub struct App {
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ctx.request_repaint_after(Duration::from_millis(100));
-        self.empty_session.run_timers(&mut self.game_handle);
+        self.empty_session.run_timers().unwrap();
         egui::TopBottomPanel::bottom("bottom_panel")
             .exact_height(25.0)
             .show(ctx, |ui| {
@@ -122,10 +121,7 @@ impl App {
         ui.add_enabled_ui(!self.empty_session.disabled, |ui| {
             ui.horizontal(|ui| {
                 if ui.button("Empty current session").clicked()
-                    && features::empty_session::activate(
-                        &mut self.game_handle,
-                        &mut self.system_info,
-                    )
+                    && features::empty_session::activate(&mut self.system_info).unwrap()
                 {
                     self.empty_session.interval = Instant::now();
                     self.empty_session.disabled = true;
@@ -334,7 +330,9 @@ impl Drop for App {
             settings: self.settings.clone(),
         }
         .set();
-        // make sure we are not suspending game
-        features::empty_session::deactivate(&mut self.game_handle);
+        // make sure we are not network blocking game
+        if let Err(why) = features::empty_session::deactivate() {
+            log::error!("couldn't deactivate empty session: {why}");
+        }
     }
 }
