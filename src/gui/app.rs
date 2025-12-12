@@ -50,7 +50,7 @@ pub struct App {
     stage: Stage,
     pub flags: Flags,
     pub system_info: SystemInfo,
-    pub firewall: Firewall,
+    firewall: Firewall,
     pub anti_afk: features::anti_afk::AntiAfk,
     empty_session: features::empty_session::EmptySession,
     force_close: features::force_close::ForceClose,
@@ -120,7 +120,7 @@ impl App {
 
     fn show_session_section(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
         ui.header("Session");
-        ui.add_enabled_ui(!self.empty_session.disabled, |ui| {
+        ui.add_enabled_ui(self.flags.elevated && !self.empty_session.disabled, |ui| {
             ui.horizontal(|ui| {
                 if ui.button("Empty current session").clicked()
                     && features::empty_session::activate(&mut self.system_info, &self.firewall)
