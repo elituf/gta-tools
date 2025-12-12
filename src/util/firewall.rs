@@ -11,17 +11,20 @@ use windows::{
     core::BSTR,
 };
 
+#[derive(Debug)]
 pub struct Firewall {
     policy: INetFwPolicy2,
 }
 
-impl Firewall {
-    pub fn new() -> Result<Self, Box<dyn Error>> {
-        Ok(Self {
-            policy: unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER) }?,
-        })
+impl Default for Firewall {
+    fn default() -> Self {
+        Self {
+            policy: unsafe { CoCreateInstance(&NetFwPolicy2, None, CLSCTX_INPROC_SERVER) }.unwrap(),
+        }
     }
+}
 
+impl Firewall {
     pub fn add(
         &self,
         name: &str,
