@@ -42,9 +42,9 @@ impl Logger {
 
     fn log_to_file(&self, record: &log::Record) {
         let mut file = self.file.lock().unwrap();
-        write!(
+        writeln!(
             file,
-            "[{}][{}] {}\n",
+            "[{}][{}] {}",
             humantime::format_rfc3339_seconds(SystemTime::now()),
             record.level(),
             record.args()
