@@ -61,7 +61,7 @@ pub struct App {
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ctx.request_repaint_after(Duration::from_millis(100));
-        self.empty_session.run_timers().unwrap();
+        self.empty_session.run_timers(&self.firewall).unwrap();
         egui::TopBottomPanel::bottom("bottom_panel")
             .exact_height(25.0)
             .show(ctx, |ui| {
@@ -123,7 +123,8 @@ impl App {
         ui.add_enabled_ui(!self.empty_session.disabled, |ui| {
             ui.horizontal(|ui| {
                 if ui.button("Empty current session").clicked()
-                    && features::empty_session::activate(&mut self.system_info).unwrap()
+                    && features::empty_session::activate(&mut self.system_info, &self.firewall)
+                        .unwrap()
                 {
                     self.empty_session.interval = Instant::now();
                     self.empty_session.disabled = true;
@@ -333,7 +334,7 @@ impl Drop for App {
         }
         .set();
         // make sure we are not network blocking game
-        if let Err(why) = features::empty_session::deactivate() {
+        if let Err(why) = features::empty_session::deactivate(&self.firewall) {
             log::error!("couldn't deactivate empty session: {why}");
         }
     }
