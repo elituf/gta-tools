@@ -6,10 +6,15 @@ use crate::{
     util::{persistent_state::PersistentState, win},
 };
 use eframe::egui;
+use windows::Win32::System::Com::{COINIT_APARTMENTTHREADED, CoInitializeEx};
 
 fn app_creator(
     cc: &eframe::CreationContext<'_>,
 ) -> Result<Box<dyn eframe::App>, Box<dyn std::error::Error + Send + Sync>> {
+    // initialize COM just in case
+    if unsafe { CoInitializeEx(None, COINIT_APARTMENTTHREADED) }.is_err() {
+        log::error!("couldn't initialize COM");
+    }
     // initialize App early to modify some things before returning it
     let mut app = Box::new(App::default());
     // load previously selected launch platform & settings from persistent state
