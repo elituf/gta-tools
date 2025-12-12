@@ -6,10 +6,7 @@ use windows::{
             INetFwPolicy2, INetFwRule, NET_FW_ACTION_BLOCK, NET_FW_IP_PROTOCOL_ANY,
             NET_FW_RULE_DIR_OUT, NetFwPolicy2, NetFwRule,
         },
-        System::Com::{
-            CLSCTX_INPROC_SERVER, COINIT_MULTITHREADED, CoCreateInstance, CoInitializeEx,
-            CoUninitialize,
-        },
+        System::Com::{CLSCTX_INPROC_SERVER, CoCreateInstance},
     },
     core::BSTR,
 };
@@ -19,7 +16,6 @@ const FILTER_NAME_SAVE_SERVER: &str = "[GTA Tools] Block outbound traffic to Roc
 
 #[derive(Debug)]
 pub struct GameNetworking {
-    com_initialized: bool,
     pub blocked: bool,
 }
 
@@ -31,15 +27,6 @@ impl Default for GameNetworking {
             } else {
                 Self::is_exe_blocked().unwrap()
             },
-            com_initialized: unsafe { CoInitializeEx(None, COINIT_MULTITHREADED) }.is_ok(),
-        }
-    }
-}
-
-impl Drop for GameNetworking {
-    fn drop(&mut self) {
-        if self.com_initialized {
-            unsafe { CoUninitialize() };
         }
     }
 }
