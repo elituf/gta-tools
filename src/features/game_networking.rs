@@ -1,14 +1,5 @@
-use crate::{
-    gui::settings::BlockMethod,
-    util::{
-        consts::game::{EXE_ENHANCED, EXE_LEGACY},
-        system_info::SystemInfo,
-    },
-};
-use std::{
-    error::Error,
-    path::{Path, PathBuf},
-};
+use crate::{gui::settings::BlockMethod, util::system_info::SystemInfo};
+use std::{error::Error, path::PathBuf};
 use windows::{
     Win32::{
         NetworkManagement::WindowsFirewall::{
@@ -158,13 +149,4 @@ impl GameNetworking {
         }
         Ok(())
     }
-}
-
-fn get_game_exe_path(system_info: &mut SystemInfo) -> Option<&Path> {
-    system_info.refresh();
-    system_info
-        .processes()
-        .iter()
-        .find(|p| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
-        .and_then(|p| p.exe())
 }

@@ -18,6 +18,8 @@ use windows::{
     core::PWSTR,
 };
 
+use crate::util::consts::game::{EXE_ENHANCED, EXE_LEGACY};
+
 #[derive(Clone, Debug)]
 pub struct Process {
     pid: u32,
@@ -78,6 +80,14 @@ impl SystemInfo {
             });
         }
         self.processes = processes;
+    }
+
+    pub fn get_game_exe_path(&mut self) -> Option<&Path> {
+        self.refresh();
+        self.processes()
+            .iter()
+            .find(|p| p.name() == EXE_ENHANCED || p.name() == EXE_LEGACY)
+            .and_then(|p| p.exe())
     }
 
     pub fn processes(&self) -> &[Process] {
