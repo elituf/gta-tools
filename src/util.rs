@@ -1,5 +1,6 @@
 pub mod consts;
 pub mod countdown;
+pub mod firewall;
 pub mod logging;
 pub mod persistent_state;
 pub mod system_info;
