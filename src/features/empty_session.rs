@@ -3,10 +3,8 @@ use crate::util::{
     firewall::{Firewall, RuleDirection, RuleMode, RuleProtocol},
     system_info::SystemInfo,
 };
-use std::{
-    error::Error,
-    time::{Duration, Instant},
-};
+use anyhow::Result;
+use std::time::{Duration, Instant};
 
 const FILTER_NAME_EMPTY_SESSION_IN: &str = "[GTA Tools] Block inbound UDP traffic for all of GTA V";
 const FILTER_NAME_EMPTY_SESSION_OUT: &str =
@@ -32,7 +30,7 @@ impl Default for EmptySession {
 }
 
 impl EmptySession {
-    pub fn run_timers(&mut self, firewall: &Firewall) -> Result<(), Box<dyn Error>> {
+    pub fn run_timers(&mut self, firewall: &Firewall) -> Result<()> {
         if self.disabled {
             self.countdown.count();
         } else {
@@ -46,7 +44,7 @@ impl EmptySession {
     }
 }
 
-pub fn activate(system_info: &mut SystemInfo, firewall: &Firewall) -> Result<bool, Box<dyn Error>> {
+pub fn activate(system_info: &mut SystemInfo, firewall: &Firewall) -> Result<bool> {
     let Some(exe_path) = system_info.get_game_exe_path() else {
         log::info!("wasn't able to find game exe");
         return Ok(false);
@@ -66,7 +64,7 @@ pub fn activate(system_info: &mut SystemInfo, firewall: &Firewall) -> Result<boo
     Ok(true)
 }
 
-pub fn deactivate(firewall: &Firewall) -> Result<(), Box<dyn Error>> {
+pub fn deactivate(firewall: &Firewall) -> Result<()> {
     firewall.remove(FILTER_NAME_EMPTY_SESSION_IN)?;
     firewall.remove(FILTER_NAME_EMPTY_SESSION_OUT)?;
     Ok(())

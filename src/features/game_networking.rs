@@ -5,7 +5,7 @@ use crate::{
         system_info::SystemInfo,
     },
 };
-use std::error::Error;
+use anyhow::Result;
 use strum::{Display, EnumIter};
 
 const FILTER_NAME_EXE: &str = "[GTA Tools] Block outbound traffic for all of GTA V";
@@ -40,11 +40,7 @@ impl Default for GameNetworking {
 }
 
 impl GameNetworking {
-    pub fn block_exe(
-        &mut self,
-        system_info: &mut SystemInfo,
-        firewall: &Firewall,
-    ) -> Result<(), Box<dyn Error>> {
+    pub fn block_exe(&mut self, system_info: &mut SystemInfo, firewall: &Firewall) -> Result<()> {
         let Some(exe_path) = system_info.get_game_exe_path() else {
             log::warn!("Unable to find game executable path.");
             return Ok(());
@@ -59,17 +55,13 @@ impl GameNetworking {
             .inspect(|_| self.blocked = BlockedStatus::ExeBlocked)
     }
 
-    pub fn unblock_exe(&mut self, firewall: &Firewall) -> Result<(), Box<dyn Error>> {
+    pub fn unblock_exe(&mut self, firewall: &Firewall) -> Result<()> {
         firewall
             .remove(FILTER_NAME_EXE)
             .inspect(|_| self.blocked = BlockedStatus::NotBlocked)
     }
 
-    pub fn block_save_server(
-        &mut self,
-        save_server_ip: &str,
-        firewall: &Firewall,
-    ) -> Result<(), Box<dyn Error>> {
+    pub fn block_save_server(&mut self, save_server_ip: &str, firewall: &Firewall) -> Result<()> {
         firewall
             .add(
                 FILTER_NAME_SAVE_SERVER,
@@ -80,7 +72,7 @@ impl GameNetworking {
             .inspect(|_| self.blocked = BlockedStatus::ServerBlocked)
     }
 
-    pub fn unblock_save_server(&mut self, firewall: &Firewall) -> Result<(), Box<dyn Error>> {
+    pub fn unblock_save_server(&mut self, firewall: &Firewall) -> Result<()> {
         firewall
             .remove(FILTER_NAME_SAVE_SERVER)
             .inspect(|_| self.blocked = BlockedStatus::NotBlocked)
@@ -90,7 +82,7 @@ impl GameNetworking {
         &mut self,
         block_method: BlockMethod,
         firewall: &Firewall,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<()> {
         match block_method {
             BlockMethod::EntireGame => {
                 if self.blocked == BlockedStatus::ServerBlocked {

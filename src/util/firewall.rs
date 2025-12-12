@@ -1,4 +1,5 @@
-use std::{error::Error, path::PathBuf};
+use anyhow::Result;
+use std::path::PathBuf;
 use windows::{
     Win32::{
         NetworkManagement::WindowsFirewall::{
@@ -31,7 +32,7 @@ impl Firewall {
         mode: RuleMode,
         direction: RuleDirection,
         protocol: RuleProtocol,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<()> {
         let add_rule = || {
             let rules = unsafe { self.policy.Rules() }?;
             unsafe { rules.Remove(&BSTR::from(name)) }?;
@@ -61,7 +62,7 @@ impl Firewall {
         add_rule().inspect_err(|e| log::warn!("Failed to add rule '{name}': {e}"))
     }
 
-    pub fn remove(&self, name: &str) -> Result<(), Box<dyn Error>> {
+    pub fn remove(&self, name: &str) -> Result<()> {
         let remove_rule = || {
             let rules = unsafe { self.policy.Rules() }?;
             unsafe { rules.Remove(&BSTR::from(name)) }?;
@@ -70,7 +71,7 @@ impl Firewall {
         remove_rule().inspect_err(|e| log::warn!("Failed to remove rule '{name}': {e}"))
     }
 
-    pub fn is_blocked(&self, name: &str) -> Result<bool, Box<dyn Error>> {
+    pub fn is_blocked(&self, name: &str) -> Result<bool> {
         let rules = unsafe { self.policy.Rules() }?;
         let rule_exists = unsafe { rules.Item(&BSTR::from(name)) }.is_ok();
         Ok(rule_exists)
