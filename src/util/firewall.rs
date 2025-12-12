@@ -82,6 +82,7 @@ pub enum RuleDirection {
 
 pub enum RuleProtocol {
     Any,
+    #[allow(unused)]
     Tcp,
     Udp,
 }
