@@ -32,35 +32,42 @@ impl Firewall {
         direction: RuleDirection,
         protocol: RuleProtocol,
     ) -> Result<(), Box<dyn Error>> {
-        let rules = unsafe { self.policy.Rules() }?;
-        unsafe { rules.Remove(&BSTR::from(name)) }?;
-        let rule: INetFwRule = unsafe { CoCreateInstance(&NetFwRule, None, CLSCTX_INPROC_SERVER) }?;
-        unsafe { rule.SetName(&BSTR::from(name)) }?;
-        match mode {
-            RuleMode::Executable(exe) => {
-                unsafe { rule.SetApplicationName(&BSTR::from(exe.to_string_lossy().to_string())) }?
+        let add_rule = || {
+            let rules = unsafe { self.policy.Rules() }?;
+            unsafe { rules.Remove(&BSTR::from(name)) }?;
+            let rule: INetFwRule =
+                unsafe { CoCreateInstance(&NetFwRule, None, CLSCTX_INPROC_SERVER) }?;
+            unsafe { rule.SetName(&BSTR::from(name)) }?;
+            match mode {
+                RuleMode::Executable(exe) => unsafe {
+                    rule.SetApplicationName(&BSTR::from(exe.to_string_lossy().to_string()))
+                }?,
+                RuleMode::Address(ip) => unsafe { rule.SetRemoteAddresses(&BSTR::from(ip)) }?,
             }
-            RuleMode::Address(ip) => unsafe { rule.SetRemoteAddresses(&BSTR::from(ip)) }?,
-        }
-        match direction {
-            RuleDirection::In => unsafe { rule.SetDirection(NET_FW_RULE_DIR_IN) }?,
-            RuleDirection::Out => unsafe { rule.SetDirection(NET_FW_RULE_DIR_OUT) }?,
-        }
-        unsafe { rule.SetEnabled(true.into()) }?;
-        unsafe { rule.SetAction(NET_FW_ACTION_BLOCK) }?;
-        match protocol {
-            RuleProtocol::Any => unsafe { rule.SetProtocol(NET_FW_IP_PROTOCOL_ANY.0) }?,
-            RuleProtocol::Tcp => unsafe { rule.SetProtocol(NET_FW_IP_PROTOCOL_TCP.0) }?,
-            RuleProtocol::Udp => unsafe { rule.SetProtocol(NET_FW_IP_PROTOCOL_UDP.0) }?,
-        }
-        unsafe { rules.Add(&rule) }?;
-        Ok(())
+            match direction {
+                RuleDirection::In => unsafe { rule.SetDirection(NET_FW_RULE_DIR_IN) }?,
+                RuleDirection::Out => unsafe { rule.SetDirection(NET_FW_RULE_DIR_OUT) }?,
+            }
+            unsafe { rule.SetEnabled(true.into()) }?;
+            unsafe { rule.SetAction(NET_FW_ACTION_BLOCK) }?;
+            match protocol {
+                RuleProtocol::Any => unsafe { rule.SetProtocol(NET_FW_IP_PROTOCOL_ANY.0) }?,
+                RuleProtocol::Tcp => unsafe { rule.SetProtocol(NET_FW_IP_PROTOCOL_TCP.0) }?,
+                RuleProtocol::Udp => unsafe { rule.SetProtocol(NET_FW_IP_PROTOCOL_UDP.0) }?,
+            }
+            unsafe { rules.Add(&rule) }?;
+            Ok(())
+        };
+        add_rule().inspect_err(|e| log::warn!("Failed to add rule '{name}': {e}"))
     }
 
     pub fn remove(&self, name: &str) -> Result<(), Box<dyn Error>> {
-        let rules = unsafe { self.policy.Rules() }?;
-        unsafe { rules.Remove(&BSTR::from(name)) }?;
-        Ok(())
+        let remove_rule = || {
+            let rules = unsafe { self.policy.Rules() }?;
+            unsafe { rules.Remove(&BSTR::from(name)) }?;
+            Ok(())
+        };
+        remove_rule().inspect_err(|e| log::warn!("Failed to remove rule '{name}': {e}"))
     }
 
     pub fn is_blocked(&self, name: &str) -> Result<bool, Box<dyn Error>> {
