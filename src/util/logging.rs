@@ -44,7 +44,7 @@ impl Logger {
         let mut file = self.file.lock().unwrap();
         write!(
             file,
-            "[{}][{}]\n{}\n\n",
+            "[{}][{}] {}\n",
             humantime::format_rfc3339_seconds(SystemTime::now()),
             record.level(),
             record.args()
@@ -55,7 +55,7 @@ impl Logger {
 
     fn log_to_stderr(record: &log::Record) {
         eprintln!(
-            "[{}][{}]\n{}",
+            "[{}][{}] {}",
             humantime::format_rfc3339_seconds(SystemTime::now()),
             record.level(),
             record.args()
