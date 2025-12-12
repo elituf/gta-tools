@@ -62,6 +62,12 @@ impl Firewall {
         unsafe { rules.Remove(&BSTR::from(name)) }?;
         Ok(())
     }
+
+    pub fn is_blocked(&self, name: &str) -> Result<bool, Box<dyn Error>> {
+        let rules = unsafe { self.policy.Rules() }?;
+        let rule_exists = unsafe { rules.Item(&BSTR::from(name)) }.is_ok();
+        Ok(rule_exists)
+    }
 }
 
 pub enum RuleMode {
