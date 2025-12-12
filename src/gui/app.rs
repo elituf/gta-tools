@@ -7,6 +7,7 @@ use crate::{
     },
     util::{
         consts::{colours, game::WINDOW_TITLE, path},
+        firewall::Firewall,
         persistent_state::PersistentState,
         system_info::SystemInfo,
         win,
@@ -49,6 +50,7 @@ pub struct App {
     stage: Stage,
     pub flags: Flags,
     pub system_info: SystemInfo,
+    pub firewall: Firewall,
     pub anti_afk: features::anti_afk::AntiAfk,
     empty_session: features::empty_session::EmptySession,
     force_close: features::force_close::ForceClose,
