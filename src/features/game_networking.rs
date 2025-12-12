@@ -46,6 +46,7 @@ impl GameNetworking {
         firewall: &Firewall,
     ) -> Result<(), Box<dyn Error>> {
         let Some(exe_path) = system_info.get_game_exe_path() else {
+            log::warn!("Unable to find game executable path.");
             return Ok(());
         };
         firewall

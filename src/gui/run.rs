@@ -12,8 +12,8 @@ fn app_creator(
     cc: &eframe::CreationContext<'_>,
 ) -> Result<Box<dyn eframe::App>, Box<dyn std::error::Error + Send + Sync>> {
     // initialize COM just in case
-    if unsafe { CoInitializeEx(None, COINIT_APARTMENTTHREADED) }.is_err() {
-        log::error!("couldn't initialize COM");
+    if let Err(e) = unsafe { CoInitializeEx(None, COINIT_APARTMENTTHREADED) }.ok() {
+        log::error!("couldn't initialize COM: {e}");
     }
     // initialize App early to modify some things before returning it
     let mut app = Box::new(App::default());
