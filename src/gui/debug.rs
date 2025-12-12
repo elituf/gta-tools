@@ -34,6 +34,9 @@ impl App {
             if ui.add(egui::Button::new("force refresh theme")).clicked() {
                 catppuccin_egui::set_theme(ui.ctx(), self.settings.theme.into());
             }
+            if ui.button("panic button").clicked() {
+                panic!("this is the panic button");
+            }
         });
         ui.collapsing("anti afk", |ui| {
             ui.label(format!(
