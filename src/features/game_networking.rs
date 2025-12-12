@@ -14,9 +14,9 @@ const FILTER_NAME_SAVE_SERVER: &str = "[GTA Tools] Block outbound traffic to Roc
 #[derive(Clone, Copy, Debug, Default, Display, EnumIter, PartialEq)]
 pub enum BlockedStatus {
     #[default]
-    NotBlocked,
-    ServerBlocked,
-    ExeBlocked,
+    Unblocked,
+    Server,
+    Executable,
 }
 
 #[derive(Debug)]
@@ -29,11 +29,11 @@ impl Default for GameNetworking {
         let firewall = Firewall::default();
         Self {
             blocked: if firewall.is_blocked(FILTER_NAME_SAVE_SERVER).unwrap() {
-                BlockedStatus::ServerBlocked
+                BlockedStatus::Server
             } else if firewall.is_blocked(FILTER_NAME_EXE).unwrap() {
-                BlockedStatus::ExeBlocked
+                BlockedStatus::Executable
             } else {
-                BlockedStatus::NotBlocked
+                BlockedStatus::Unblocked
             },
         }
     }
@@ -52,13 +52,13 @@ impl GameNetworking {
                 RuleDirection::Out,
                 RuleProtocol::Any,
             )
-            .inspect(|_| self.blocked = BlockedStatus::ExeBlocked)
+            .inspect(|_| self.blocked = BlockedStatus::Executable)
     }
 
     pub fn unblock_exe(&mut self, firewall: &Firewall) -> Result<()> {
         firewall
             .remove(FILTER_NAME_EXE)
-            .inspect(|_| self.blocked = BlockedStatus::NotBlocked)
+            .inspect(|_| self.blocked = BlockedStatus::Unblocked)
     }
 
     pub fn block_save_server(&mut self, save_server_ip: &str, firewall: &Firewall) -> Result<()> {
@@ -69,13 +69,13 @@ impl GameNetworking {
                 RuleDirection::Out,
                 RuleProtocol::Any,
             )
-            .inspect(|_| self.blocked = BlockedStatus::ServerBlocked)
+            .inspect(|_| self.blocked = BlockedStatus::Server)
     }
 
     pub fn unblock_save_server(&mut self, firewall: &Firewall) -> Result<()> {
         firewall
             .remove(FILTER_NAME_SAVE_SERVER)
-            .inspect(|_| self.blocked = BlockedStatus::NotBlocked)
+            .inspect(|_| self.blocked = BlockedStatus::Unblocked)
     }
 
     pub fn ensure_block_exclusivity(
@@ -85,12 +85,12 @@ impl GameNetworking {
     ) -> Result<()> {
         match block_method {
             BlockMethod::EntireGame => {
-                if self.blocked == BlockedStatus::ServerBlocked {
+                if self.blocked == BlockedStatus::Server {
                     self.unblock_save_server(firewall)?;
                 }
             }
             BlockMethod::SaveServer => {
-                if self.blocked == BlockedStatus::ExeBlocked {
+                if self.blocked == BlockedStatus::Executable {
                     self.unblock_exe(firewall)?;
                 }
             }

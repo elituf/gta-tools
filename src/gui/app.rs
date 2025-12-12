@@ -164,12 +164,12 @@ impl App {
                         };
                         ui.add_space(1.0);
                         ui.create_indicator_dot(match self.game_networking.blocked {
-                            BlockedStatus::ExeBlocked
+                            BlockedStatus::Executable
                                 if self.settings.block_method == BlockMethod::EntireGame =>
                             {
                                 colours::RED
                             }
-                            BlockedStatus::ServerBlocked
+                            BlockedStatus::Server
                                 if self.settings.block_method == BlockMethod::SaveServer =>
                             {
                                 colours::RED
