@@ -40,9 +40,9 @@ impl Firewall {
                 unsafe { CoCreateInstance(&NetFwRule, None, CLSCTX_INPROC_SERVER) }?;
             unsafe { rule.SetName(&BSTR::from(name)) }?;
             match mode {
-                RuleMode::Executable(exe) => unsafe {
-                    rule.SetApplicationName(&BSTR::from(exe.to_string_lossy().to_string()))
-                }?,
+                RuleMode::Executable(exe) => {
+                    unsafe { rule.SetApplicationName(&BSTR::from(exe.to_string_lossy().as_ref())) }?
+                }
                 RuleMode::Address(ip) => unsafe { rule.SetRemoteAddresses(&BSTR::from(ip)) }?,
             }
             match direction {
